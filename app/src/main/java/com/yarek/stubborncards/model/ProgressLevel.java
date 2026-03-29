@@ -5,7 +5,7 @@ package com.yarek.stubborncards.model;
  */
 public enum ProgressLevel {
     /** Thw word is new to a user, he maybe saw it a few times */
-    NEW,
+    NEW("New"),
 
     /** Technical state. Same as new, but included in the current
      * learning list.
@@ -13,19 +13,29 @@ public enum ProgressLevel {
      * Typically, user may have 100 new words, but only 10-15 of them
      * are going to be reviewed.
      */
-    NEW_BATCH,
+    NEW_BATCH("New (active)"),
 
     /** The word is in learners short memory */
-    CLEAN_UP,
+    CLEAN_UP("Clean up"),
 
     /** The word is known to the learner, but may be forgotten in a week. */
-    KNOWN,
+    KNOWN("Known"),
 
     /** The word is learnt, so it should not be reviewed frequently */
-    LEARNED,
+    LEARNED("Learned"),
 
     /** The word is learned forever.
      * Usually used for simple words that user won't forget at all (like, "a cat", "mother").
      */
-    MASTERED
+    MASTERED("Mastered");
+
+    private final String readable;
+
+    public String getReadable() {
+        return readable;
+    }
+
+    ProgressLevel(String readable) {
+        this.readable = readable;
+    }
 }
