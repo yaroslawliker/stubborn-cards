@@ -120,7 +120,7 @@ fun ProgressLevelButton(levelName: String, wordAmount: String) {
             );
             Text(
                 wordAmount,
-                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f)            );
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f));
         }
     }
 

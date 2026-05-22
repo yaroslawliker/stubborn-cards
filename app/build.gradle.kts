@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -56,13 +57,19 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.room.testing)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.androidx.ui.tooling.preview)
 
-    compileOnly("org.projectlombok:lombok:1.18.44")
-    annotationProcessor("org.projectlombok:lombok:1.18.44")
+    annotationProcessor(libs.lombok)
+    compileOnly(libs.lombok)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+    ksp(libs.lombok)
 
-    testCompileOnly("org.projectlombok:lombok:1.18.44")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
+    implementation(libs.androidx.room.runtime.v261)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler.v261)
+    implementation(libs.androidx.room.paging)
 }
