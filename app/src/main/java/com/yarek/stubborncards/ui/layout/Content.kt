@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.yarek.stubborncards.ui.page.AddFlashcardPage
 import com.yarek.stubborncards.ui.page.CardsPage
 import com.yarek.stubborncards.ui.theme.Typography
 
@@ -30,9 +31,10 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
             fadeOut(animationSpec = tween(150))
         }
     ) {
-        composable(route=Page.Cards.route) { CardsPage() }
+        composable(route=Page.Cards.route) { CardsPage(navController) }
         composable(route=Page.Home.route) { DummyContent("Home") }
         composable(route=Page.Learn.route) { DummyContent("Learn") }
+        composable(route=Page.AddFlashcard.route) { AddFlashcardPage() }
     }
 }
 

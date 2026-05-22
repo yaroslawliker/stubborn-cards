@@ -4,4 +4,5 @@ sealed class Page(val route: String) {
     object Home : Page("home")
     object Cards : Page("cards")
     object Learn : Page("learn")
+    object AddFlashcard : Page("add_flashcard")
 }

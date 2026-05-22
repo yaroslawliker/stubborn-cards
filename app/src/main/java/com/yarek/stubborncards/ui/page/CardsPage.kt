@@ -19,7 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.yarek.stubborncards.model.ProgressLevel
+import com.yarek.stubborncards.ui.layout.Page
 import com.yarek.stubborncards.ui.layout.PagePadding
 import com.yarek.stubborncards.ui.theme.Typography
 
@@ -34,11 +36,11 @@ import com.yarek.stubborncards.ui.theme.Typography
  */
 @Preview(showBackground = true)
 @Composable
-fun CardsPage() {
+fun CardsPage(navController: NavHostController) {
     PagePadding {
         // All the content goes here
         Column {
-            AddFlashCardButton();
+            AddFlashCardButton(navController);
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 20.dp),
                 thickness = 2.dp,
@@ -50,9 +52,9 @@ fun CardsPage() {
 
 
 @Composable
-fun AddFlashCardButton() {
+fun AddFlashCardButton(navController: NavHostController) {
     Button(
-        onClick = { Log.d("CardsPage", "Add button") },
+        onClick = { navController.navigate(Page.AddFlashcard.route) },
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
