@@ -5,27 +5,13 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -54,7 +40,14 @@ fun UnitCardPage(
                 }
             }
             is UnitCardViewModel.UiState.Success -> {
-                CardDetailsContent(card = state.card, progress = state.progress)
+                CardDetailsContent(
+                    card = state.card,
+                    progress = state.progress,
+                    hasPrevious = state.hasPrevious,
+                    hasNext = state.hasNext,
+                    onPreviousClick = { viewModel.navigateToPreviousCard() },
+                    onNextClick = { viewModel.navigateToNextCard() }
+                )
             }
             is UnitCardViewModel.UiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -66,13 +59,19 @@ fun UnitCardPage(
 }
 
 @Composable
-fun CardDetailsContent(card: FlashCard, progress: LearningProgress?) {
-    // State to toggle between word and translation text views
-    var showTranslation by remember { mutableStateOf(false) }
-    // Scale animation logic state holder variables
+fun CardDetailsContent(
+    card: FlashCard,
+    progress: LearningProgress?,
+    hasPrevious: Boolean,
+    hasNext: Boolean,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit
+) {
+    // We key remember to card.id so that flipping resets when navigating between different words
+    var showTranslation by remember(card.id) { mutableStateOf(false) }
     var isPressed by remember { mutableStateOf(false) }
 
-    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 1.05f else 1.0f,
         animationSpec = spring(dampingRatio = 0.5f, stiffness = 300f),
@@ -83,13 +82,38 @@ fun CardDetailsContent(card: FlashCard, progress: LearningProgress?) {
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Page Dynamic Header Text
-        Text(
+
+        // Dynamic Title row with Mockup Navigation Switches
+        Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
-            text = card.word,
-            textAlign = TextAlign.Center,
-            style = Typography.titleLarge
-        )
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilledTonalIconButton(
+                onClick = onPreviousClick,
+                enabled = hasPrevious,
+                shape = RoundedCornerShape(12.dp), // Distinct square-ish look from mockup
+                modifier = Modifier.size(45.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous Card")
+            }
+
+            Text(
+                text = "Flash-card",
+                style = Typography.titleLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f)
+            )
+
+            FilledTonalIconButton(
+                onClick = onNextClick,
+                enabled = hasNext,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.size(45.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next Card")
+            }
+        }
 
         // Flash-card Interactive Presentation Canvas Container
         Surface(
@@ -106,12 +130,11 @@ fun CardDetailsContent(card: FlashCard, progress: LearningProgress?) {
                 )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = null // Disables default grey ripple to keep custom bounce clean
+                    indication = null
                 ) {
                     coroutineScope.launch {
                         isPressed = true
                         showTranslation = !showTranslation
-
                         kotlinx.coroutines.delay(80)
                         isPressed = false
                     }
