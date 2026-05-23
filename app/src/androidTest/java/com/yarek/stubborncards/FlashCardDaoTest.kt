@@ -5,7 +5,8 @@ import android.os.Looper
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.yarek.stubborncards.dao.FlashCardDao
+import com.yarek.stubborncards.database.AppDatabase
+import com.yarek.stubborncards.database.dao.FlashCardDao
 import com.yarek.stubborncards.model.FlashCard
 import org.junit.After
 import org.junit.Before
@@ -66,7 +67,7 @@ class FlashCardDaoTest {
     @Test
     fun updateCard() {
         val card = FlashCard("cat", "кіт")
-        val id = dao.insert(card).toInt() // Capture the returned ID
+        val id = dao.insert(card)
         card.setId(id) // Set it back on the card object
 
         card.setTranslation("котик")
@@ -80,8 +81,8 @@ class FlashCardDaoTest {
     @Test
     fun deleteCard() {
         val card = FlashCard("dog", "собака")
-        val id = dao.insert(card).toInt()
-        card.setId(id) // Set the ID so delete knows which row to remove
+        val id = dao.insert(card)
+        card.id = id
 
         dao.delete(card)
 
@@ -92,7 +93,7 @@ class FlashCardDaoTest {
     @Test
     fun getCardById() {
         val card = FlashCard("water", "вода")
-        val id = dao.insert(card).toInt() // Capture the returned ID
+        val id = dao.insert(card)
 
         val retrieved = dao.getById(id).getValueBlocking()
         assert(retrieved != null)

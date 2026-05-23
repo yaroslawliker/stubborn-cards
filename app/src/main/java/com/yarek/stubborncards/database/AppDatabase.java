@@ -1,17 +1,29 @@
-package com.yarek.stubborncards;
+package com.yarek.stubborncards.database;
 
 import android.content.Context;
 
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 
-import com.yarek.stubborncards.dao.FlashCardDao;
+import com.yarek.stubborncards.database.dao.FlashCardDao;
+import com.yarek.stubborncards.database.dao.LearningProgressDao;
 import com.yarek.stubborncards.model.FlashCard;
+import com.yarek.stubborncards.model.LearningProgress;
 
-@Database(entities = {FlashCard.class}, version = 1, exportSchema = false)
+@Database(
+        entities = {
+                FlashCard.class,
+                LearningProgress.class
+        },
+        version = 3,
+        exportSchema = false)
+@TypeConverters({RoomConverters.class})
 public abstract class AppDatabase extends RoomDatabase {
+
     public abstract FlashCardDao flashCardDao();
+    public abstract LearningProgressDao learningProgressDao();
 
     private static volatile AppDatabase INSTANCE;
 

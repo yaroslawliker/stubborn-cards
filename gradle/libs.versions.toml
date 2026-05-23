@@ -5,28 +5,25 @@ coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
+kotlinxCoroutinesTest = "1.9.0"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
 lombok = "1.18.44"
-roomTesting = "2.6.1"
 navigationCompose = "2.9.7"
-roomCompiler = "2.6.1"
-roomKtx = "2.6.1"
-roomPaging = "2.6.1"
-roomRuntime = "2.8.4"
-roomRuntimeVersion = "2.6.1"
+room = "2.6.1"
 uiText = "1.10.3"
 uiToolingPreview = "1.10.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
-androidx-room-compiler-v261 = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
-androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
-androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomPaging" }
-androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
-androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.ref = "roomRuntimeVersion" }
+# 👇 Uniformly tied all Room components to the stable 2.6.1 version reference
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -43,11 +40,10 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-

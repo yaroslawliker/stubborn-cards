@@ -4,21 +4,17 @@ package com.yarek.stubborncards.model;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * This entity represents a flesh-card with word, it's translation and
  * some other data about the word.
  * This class is not aware of learner's progress.
  * This class may be used to exchange dictionaries publicly.
  */
-@Entity(tableName = "flash_cards")
+@Entity(tableName = "flash_card")
 public class FlashCard {
 
     @PrimaryKey(autoGenerate = true)
-    private int id;
+    private Long id;
 
     /** The word a learner want's to memorize */
     private String word;
@@ -43,11 +39,11 @@ public class FlashCard {
     }
 
     // Getters and Setters
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

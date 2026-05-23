@@ -1,4 +1,4 @@
-package com.yarek.stubborncards.dao;
+package com.yarek.stubborncards.database.dao;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -16,7 +16,7 @@ import java.util.List;
 public interface FlashCardDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(FlashCard flashCard);
+    Long insert(FlashCard flashCard);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> insertAll(List<FlashCard> cards);
@@ -27,9 +27,9 @@ public interface FlashCardDao {
     @Delete
     void delete(FlashCard flashCard);
 
-    @Query("SELECT * FROM flash_cards ORDER BY id ASC")
+    @Query("SELECT * FROM flash_card ORDER BY id ASC")
     LiveData<List<FlashCard>> getAll();
 
-    @Query("SELECT * FROM flash_cards WHERE id = :id LIMIT 1")
-    LiveData<FlashCard> getById(int id);
+    @Query("SELECT * FROM flash_card WHERE id = :id LIMIT 1")
+    LiveData<FlashCard> getById(long id);
 }
