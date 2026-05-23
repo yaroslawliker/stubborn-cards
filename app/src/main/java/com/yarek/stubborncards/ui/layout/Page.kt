@@ -10,8 +10,8 @@ sealed class Page(val route: String) {
         fun createRoute(categoryName: String) = "category_words/$categoryName"
     }
 
-    object CardDetails : Page("card_details/{cardId}") {
-        fun createRoute(cardId: Long) = "card_details/$cardId"
+    object CardDetails : Page("card_details/{categoryName}/{cardId}") {
+        fun createRoute(categoryName: String, cardId: Long) = "card_details/$categoryName/$cardId"
     }
 
     object EditCard : Page("edit_card/{cardId}") {

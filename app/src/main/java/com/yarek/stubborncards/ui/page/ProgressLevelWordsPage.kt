@@ -114,7 +114,12 @@ fun ProgressLevelWordsPage(
                             flashCard = card,
                             showTranslation = showTranslations,
                             onClick = { cardId ->
-                                navController.navigate(Page.CardDetails.createRoute(cardId))
+                                navController.navigate(
+                                    Page.CardDetails.createRoute(
+                                        categoryName = viewModel.selectedLevel.name,
+                                        cardId = cardId
+                                    )
+                                )
                             }
                         )
                     }
