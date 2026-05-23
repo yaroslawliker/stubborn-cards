@@ -47,7 +47,7 @@ fun Navbar(navController: NavHostController) {
                 },
                 label = {
                     Text(
-                        it.route.capitalize(),
+                        it.route.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() },
                         fontSize = Typography.titleLarge.fontSize
                     )
                 }

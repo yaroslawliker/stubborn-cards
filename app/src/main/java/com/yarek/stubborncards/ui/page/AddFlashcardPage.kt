@@ -1,6 +1,5 @@
 package com.yarek.stubborncards.ui.page
 
-import android.content.Context
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,30 +13,27 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.yarek.stubborncards.AppDatabase
-import com.yarek.stubborncards.model.FlashCard
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yarek.stubborncards.ui.layout.PagePadding
 import com.yarek.stubborncards.ui.theme.Typography
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.yarek.stubborncards.ui.viewmodel.AddCardViewModel
 
 @Preview(showBackground = true)
 @Composable
-fun AddFlashcardPage() {
-    val context = LocalContext.current
-    val word = remember { mutableStateOf("") }
-    val translation = remember { mutableStateOf("") }
+fun AddFlashcardPage(
+    viewModel: AddCardViewModel = viewModel()
+) {
+    val word by viewModel.word.collectAsState()
+    val translation by viewModel.translation.collectAsState()
 
     PagePadding {
         Column(
@@ -70,8 +66,8 @@ fun AddFlashcardPage() {
                 CardEmbeddedInputField(
                     label = "Question",
                     placeholder = "Enter the word",
-                    value = word.value,
-                    onValueChange = { word.value = it }
+                    value = word,
+                    onValueChange = { viewModel.onWordChange(it) }
                 )
 
                 // Dashed Divider Line
@@ -85,8 +81,8 @@ fun AddFlashcardPage() {
                 CardEmbeddedInputField(
                     label = "Answer",
                     placeholder = "Enter the translation",
-                    value = translation.value,
-                    onValueChange = { translation.value = it }
+                    value = translation,
+                    onValueChange = { viewModel.onTranslationChange(it) }
                 )
             }
 
@@ -95,11 +91,7 @@ fun AddFlashcardPage() {
             // Add Button
             Button(
                 onClick = {
-                    if (word.value.isNotBlank() && translation.value.isNotBlank()) {
-                        saveFlashcard(context, word.value, translation.value)
-                        word.value = ""
-                        translation.value = ""
-                    }
+                    viewModel.saveCard()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -173,7 +165,6 @@ fun DashedDivider(modifier: Modifier = Modifier) {
     }
 }
 
-// Changed to an extension function of DrawScope so it inherits the drawing context automatically
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawStroke(
     color: Color,
     pathEffect: PathEffect,
@@ -186,13 +177,4 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawStroke(
         strokeWidth = strokeWidth,
         pathEffect = pathEffect
     )
-}
-
-
-private fun saveFlashcard(context: Context, word: String, translation: String) {
-    GlobalScope.launch(Dispatchers.IO) {
-        val database = AppDatabase.getInstance(context)
-        val flashcard = FlashCard(word, translation)
-        database.flashCardDao().insert(flashcard)
-    }
 }
