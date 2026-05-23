@@ -32,15 +32,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.yarek.stubborncards.model.FlashCard
 import com.yarek.stubborncards.ui.layout.PagePadding
+import com.yarek.stubborncards.ui.layout.Page
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.viewmodel.ProgressLevelWordsViewModel
 
 @Composable
 fun ProgressLevelWordsPage(
+    navController: NavHostController,
     viewModel: ProgressLevelWordsViewModel = viewModel()
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -107,7 +110,13 @@ fun ProgressLevelWordsPage(
                 ) { index ->
                     val card = lazyCards[index]
                     if (card != null) {
-                        WordRowItem(flashCard = card, showTranslation = showTranslations)
+                        WordRowItem(
+                            flashCard = card,
+                            showTranslation = showTranslations,
+                            onClick = { cardId ->
+                                navController.navigate(Page.CardDetails.createRoute(cardId))
+                            }
+                        )
                     }
                 }
             }
@@ -116,10 +125,16 @@ fun ProgressLevelWordsPage(
 }
 
 @Composable
-fun WordRowItem(flashCard: FlashCard, showTranslation: Boolean) {
+fun WordRowItem(
+    flashCard: FlashCard,
+    showTranslation: Boolean,
+    onClick: (Long) -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick(flashCard.id) }
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),

@@ -24,7 +24,7 @@ public interface LearningProgressDao {
     Long insert(LearningProgress progress);
 
     @Query("SELECT * FROM learning_progress WHERE flashCardId = :cardId")
-    Flow<LearningProgress> getProgressForCard(int cardId);
+    LearningProgress getProgressByCardId(Long cardId);
 
     @Query("SELECT * FROM learning_progress")
     Flow<List<LearningProgress>> getAllProgress();
@@ -41,4 +41,10 @@ public interface LearningProgressDao {
             "ORDER BY lp.lastReviewed ASC")
     PagingSource<Integer, FlashCard> getCardsByLevelPaged(
             ProgressLevel level, @Nullable String searchQuery);
+
+    @Query("SELECT fc.id FROM flash_card fc " +
+            "INNER JOIN learning_progress lp ON fc.id = lp.flashCardId " +
+            "WHERE lp.level = :level " +
+            "ORDER BY lp.lastReviewed ASC")
+    List<Long> getCardIdsByLevel(ProgressLevel level);
 }

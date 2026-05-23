@@ -31,5 +31,5 @@ public interface FlashCardDao {
     LiveData<List<FlashCard>> getAll();
 
     @Query("SELECT * FROM flash_card WHERE id = :id LIMIT 1")
-    LiveData<FlashCard> getById(long id);
+    FlashCard getById(long id);
 }

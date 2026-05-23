@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
 fun AppPreview() {
     StubbornCardsTheme {

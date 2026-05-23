@@ -73,7 +73,7 @@ class FlashCardDaoTest {
         card.setTranslation("котик")
         dao.update(card)
 
-        val updated = dao.getById(id).getValueBlocking()
+        val updated = dao.getById(id)
         assert(updated != null)
         assert(updated?.translation == "котик")
     }
@@ -95,7 +95,7 @@ class FlashCardDaoTest {
         val card = FlashCard("water", "вода")
         val id = dao.insert(card)
 
-        val retrieved = dao.getById(id).getValueBlocking()
+        val retrieved = dao.getById(id)
         assert(retrieved != null)
         assert(retrieved?.word == "water")
         assert(retrieved?.translation == "вода")

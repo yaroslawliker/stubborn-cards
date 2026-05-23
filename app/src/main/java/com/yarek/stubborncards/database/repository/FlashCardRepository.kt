@@ -65,4 +65,21 @@ class FlashCardRepository(context: Context) {
             pagingSourceFactory = { progressDao.getCardsByLevelPaged(level, formattedQuery) }
         ).flow
     }
+
+    suspend fun getCardDetailsWithProgress(cardId: Long): Pair<FlashCard?, LearningProgress?> {
+        return withContext(Dispatchers.IO) {
+            // Fetch the target flashcard model row
+            val card = flashCardDao.getById(cardId)
+            // Fetch the corresponding learning progress model row
+            val progress = progressDao.getProgressByCardId(cardId)
+
+            Pair(card, progress)
+        }
+    }
+
+    suspend fun getCardIdsByLevel(level: ProgressLevel): List<Long> {
+        return withContext(Dispatchers.IO) {
+            progressDao.getCardIdsByLevel(level)
+        }
+    }
 }

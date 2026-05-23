@@ -21,6 +21,7 @@ import com.yarek.stubborncards.ui.page.AddFlashcardPage
 import com.yarek.stubborncards.ui.page.CardsPage
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.page.ProgressLevelWordsPage
+import com.yarek.stubborncards.ui.page.UnitCardPage
 
 @Composable
 fun Content(navController: NavHostController, innerPadding: PaddingValues) {
@@ -43,7 +44,14 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
             route = Page.CategoryWords.route,
             arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
         ) {
-            ProgressLevelWordsPage()
+            ProgressLevelWordsPage(navController)
+        }
+
+        composable(
+            route = Page.CardDetails.route,
+            arguments = listOf(navArgument("cardId") { type = NavType.LongType })
+        ) {
+            UnitCardPage()
         }
     }
 }
