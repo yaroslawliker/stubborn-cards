@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.yarek.stubborncards.ui.page.AddFlashcardPage
 import com.yarek.stubborncards.ui.page.CardsPage
+import com.yarek.stubborncards.ui.page.EditCardPage
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.page.ProgressLevelWordsPage
 import com.yarek.stubborncards.ui.page.UnitCardPage
@@ -51,7 +52,14 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
             route = Page.CardDetails.route,
             arguments = listOf(navArgument("cardId") { type = NavType.LongType })
         ) {
-            UnitCardPage()
+            UnitCardPage(navController)
+        }
+
+        composable(
+            route = Page.EditCard.route,
+            arguments = listOf(navArgument("cardId") { type = NavType.LongType })
+        ) {
+            EditCardPage(onNavigateBack = { navController.navigateUp() })
         }
     }
 }
@@ -66,5 +74,4 @@ fun DummyContent(msg: String) {
 
         fontSize = Typography.titleLarge.fontSize
     )
-
 }

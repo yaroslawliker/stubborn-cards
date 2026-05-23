@@ -13,4 +13,8 @@ sealed class Page(val route: String) {
     object CardDetails : Page("card_details/{cardId}") {
         fun createRoute(cardId: Long) = "card_details/$cardId"
     }
+
+    object EditCard : Page("edit_card/{cardId}") {
+        fun createRoute(cardId: Long) = "edit_card/$cardId"
+    }
 }

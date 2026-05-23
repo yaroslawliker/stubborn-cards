@@ -7,6 +7,7 @@ import androidx.room.Insert;
 import androidx.room.MapColumn;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.yarek.stubborncards.model.FlashCard;
 import com.yarek.stubborncards.model.LearningProgress;
@@ -24,7 +25,16 @@ public interface LearningProgressDao {
     Long insert(LearningProgress progress);
 
     @Query("SELECT * FROM learning_progress WHERE flashCardId = :cardId")
-    LearningProgress getProgressByCardId(Long cardId);
+    Flow<LearningProgress> getProgressByCardId(Long cardId);
+
+    @Update
+    void update(LearningProgress learningProgress);
+
+    @Query("UPDATE learning_progress SET level = :newLevel WHERE flashCardId = :cardId")
+    void updateLevelByCardId(long cardId, ProgressLevel newLevel);
+
+    @Query("UPDATE learning_progress SET score = :newScore WHERE flashCardId = :cardId")
+    void updateScoreByCardId(long cardId, float newScore);
 
     @Query("SELECT * FROM learning_progress")
     Flow<List<LearningProgress>> getAllProgress();

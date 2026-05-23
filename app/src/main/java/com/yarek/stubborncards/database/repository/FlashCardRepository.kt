@@ -10,6 +10,7 @@ import com.yarek.stubborncards.model.LearningProgress
 import com.yarek.stubborncards.model.ProgressLevel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 
 class FlashCardRepository(context: Context) {
@@ -66,13 +67,12 @@ class FlashCardRepository(context: Context) {
         ).flow
     }
 
-    suspend fun getCardDetailsWithProgress(cardId: Long): Pair<FlashCard?, LearningProgress?> {
-        return withContext(Dispatchers.IO) {
-            // Fetch the target flashcard model row
-            val card = flashCardDao.getById(cardId)
-            // Fetch the corresponding learning progress model row
-            val progress = progressDao.getProgressByCardId(cardId)
+    fun getCardDetailsFlow(cardId: Long): Flow<Pair<FlashCard?, LearningProgress?>> {
+        val cardFlow: Flow<FlashCard?> = flashCardDao.getById(cardId)
 
+        val progressFlow: Flow<LearningProgress?> = progressDao.getProgressByCardId(cardId)
+
+        return cardFlow.combine(progressFlow) { card, progress ->
             Pair(card, progress)
         }
     }
@@ -80,6 +80,24 @@ class FlashCardRepository(context: Context) {
     suspend fun getCardIdsByLevel(level: ProgressLevel): List<Long> {
         return withContext(Dispatchers.IO) {
             progressDao.getCardIdsByLevel(level)
+        }
+    }
+
+    suspend fun updateCardText(card: FlashCard) {
+        withContext(Dispatchers.IO) {
+            flashCardDao.update(card)
+        }
+    }
+
+    suspend fun updateProgressLevelDirectly(cardId: Long, newLevel: ProgressLevel) {
+        withContext(Dispatchers.IO) {
+            progressDao.updateLevelByCardId(cardId, newLevel)
+        }
+    }
+
+    suspend fun updateProgressScoreDirectly(cardId: Long, newScore: Float) {
+        withContext(Dispatchers.IO) {
+            progressDao.updateScoreByCardId(cardId, newScore)
         }
     }
 }

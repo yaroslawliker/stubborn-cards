@@ -19,8 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.yarek.stubborncards.model.FlashCard
 import com.yarek.stubborncards.model.LearningProgress
+import com.yarek.stubborncards.ui.layout.Page
 import com.yarek.stubborncards.ui.layout.PagePadding
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.viewmodel.UnitCardViewModel
@@ -28,6 +30,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun UnitCardPage(
+    navController: NavHostController,
     viewModel: UnitCardViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -41,6 +44,7 @@ fun UnitCardPage(
             }
             is UnitCardViewModel.UiState.Success -> {
                 CardDetailsContent(
+                    navController,
                     card = state.card,
                     progress = state.progress,
                     hasPrevious = state.hasPrevious,
@@ -60,6 +64,7 @@ fun UnitCardPage(
 
 @Composable
 fun CardDetailsContent(
+    navController: NavHostController,
     card: FlashCard,
     progress: LearningProgress?,
     hasPrevious: Boolean,
@@ -160,9 +165,8 @@ fun CardDetailsContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Dumb Edit Button
         Button(
-            onClick = { /* Will implement edit later */ },
+            onClick = { navController.navigate(Page.EditCard.createRoute(card.id)) },
             modifier = Modifier.fillMaxWidth().height(55.dp),
             shape = RoundedCornerShape(12.dp)
         ) {

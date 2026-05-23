@@ -12,6 +12,8 @@ import com.yarek.stubborncards.model.FlashCard;
 
 import java.util.List;
 
+import kotlinx.coroutines.flow.Flow;
+
 @Dao
 public interface FlashCardDao {
 
@@ -31,5 +33,5 @@ public interface FlashCardDao {
     LiveData<List<FlashCard>> getAll();
 
     @Query("SELECT * FROM flash_card WHERE id = :id LIMIT 1")
-    FlashCard getById(long id);
+    Flow<FlashCard> getById(long id);
 }

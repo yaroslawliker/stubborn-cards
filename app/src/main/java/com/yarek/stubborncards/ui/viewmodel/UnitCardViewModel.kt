@@ -8,8 +8,8 @@ import com.yarek.stubborncards.database.repository.FlashCardRepository
 import com.yarek.stubborncards.model.FlashCard
 import com.yarek.stubborncards.model.LearningProgress
 import com.yarek.stubborncards.model.ProgressLevel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class UnitCardViewModel(
@@ -19,74 +19,60 @@ class UnitCardViewModel(
 
     private val repository = FlashCardRepository(application)
 
-    private val initialCardId: Long = savedStateHandle.get<Long>("cardId")?.toLong() ?: -1L
+    private val initialCardId: Long = savedStateHandle.get<Long>("cardId") ?: -1L
     private val levelName: String = savedStateHandle.get<String>("categoryName") ?: ProgressLevel.NEW.name
     private val currentLevel = ProgressLevel.valueOf(levelName)
 
-    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
-    val uiState = _uiState.asStateFlow()
-
     private var cardIdsList = listOf<Long>()
-    private var currentIndex = -1
+
+    private val _currentIndex = MutableStateFlow(-1)
 
     init {
-        loadAllIdsAndCurrentCard()
+        loadAllIds()
     }
 
-    private fun loadAllIdsAndCurrentCard() {
+    private fun loadAllIds() {
         viewModelScope.launch {
-            // 1. Get all IDs in this category to establish the navigation pool
             cardIdsList = repository.getCardIdsByLevel(currentLevel)
-            currentIndex = cardIdsList.indexOf(initialCardId)
+            val index = cardIdsList.indexOf(initialCardId)
 
-            // Fallback if the card wasn't found in this specific list
-            if (currentIndex == -1 && cardIdsList.isNotEmpty()) {
-                currentIndex = 0
+            _currentIndex.value = if (index != -1) index else 0
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<UiState> = _currentIndex
+        .flatMapLatest { index ->
+            if (index == -1 || cardIdsList.isEmpty()) {
+                flowOf(UiState.Error("No cards available"))
+            } else {
+                val targetId = cardIdsList[index]
+
+                repository.getCardDetailsFlow(targetId).map { (card, progress) ->
+                    if (card != null) {
+                        UiState.Success(
+                            card = card,
+                            progress = progress,
+                            hasPrevious = index > 0,
+                            hasNext = index < cardIdsList.size - 1
+                        )
+                    } else {
+                        UiState.Error("Failed to load card details")
+                    }
+                }
             }
-
-            loadCurrentCardDetails()
         }
-    }
-
-    private suspend fun loadCurrentCardDetails() {
-        if (currentIndex == -1 || cardIdsList.isEmpty()) {
-            _uiState.value = UiState.Error("No cards available")
-            return
-        }
-
-        val targetId = cardIdsList[currentIndex]
-        val (card, progress) = repository.getCardDetailsWithProgress(targetId)
-
-        if (card != null) {
-            _uiState.value = UiState.Success(
-                card = card,
-                progress = progress,
-                hasPrevious = currentIndex > 0,
-                hasNext = currentIndex < cardIdsList.size - 1
-            )
-        } else {
-            _uiState.value = UiState.Error("Failed to load card details")
-        }
-    }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState.Loading)
 
     fun navigateToNextCard() {
-        if (currentIndex < cardIdsList.size - 1) {
-            currentIndex++
-            updateCardState()
+        if (_currentIndex.value < cardIdsList.size - 1) {
+            _currentIndex.value++
         }
     }
 
     fun navigateToPreviousCard() {
-        if (currentIndex > 0) {
-            currentIndex--
-            updateCardState()
-        }
-    }
-
-    private fun updateCardState() {
-        viewModelScope.launch {
-            _uiState.value = UiState.Loading
-            loadCurrentCardDetails()
+        if (_currentIndex.value > 0) {
+            _currentIndex.value--
         }
     }
 
