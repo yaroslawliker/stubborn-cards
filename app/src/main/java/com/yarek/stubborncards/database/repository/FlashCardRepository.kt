@@ -1,6 +1,9 @@
 package com.yarek.stubborncards.database.repository
 
 import android.content.Context
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.yarek.stubborncards.database.AppDatabase
 import com.yarek.stubborncards.model.FlashCard
 import com.yarek.stubborncards.model.LearningProgress
@@ -48,5 +51,18 @@ class FlashCardRepository(context: Context) {
                 progressDao.insert(initialProgress)
             }
         }
+    }
+
+    fun getCardsByLevelPaged(level: ProgressLevel, query: String): Flow<PagingData<FlashCard>> {
+        val formattedQuery = if (query.isBlank()) null else "%$query%"
+
+        return Pager(
+            config = PagingConfig(
+                pageSize = 30,
+                prefetchDistance = 10,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { progressDao.getCardsByLevelPaged(level, formattedQuery) }
+        ).flow
     }
 }

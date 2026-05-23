@@ -13,11 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.yarek.stubborncards.ui.page.AddFlashcardPage
 import com.yarek.stubborncards.ui.page.CardsPage
 import com.yarek.stubborncards.ui.theme.Typography
+import com.yarek.stubborncards.ui.page.ProgressLevelWordsPage
 
 @Composable
 fun Content(navController: NavHostController, innerPadding: PaddingValues) {
@@ -35,6 +38,13 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
         composable(route=Page.Home.route) { DummyContent("Home") }
         composable(route=Page.Learn.route) { DummyContent("Learn") }
         composable(route=Page.AddFlashcard.route) { AddFlashcardPage() }
+
+        composable(
+            route = Page.CategoryWords.route,
+            arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+        ) {
+            ProgressLevelWordsPage()
+        }
     }
 }
 

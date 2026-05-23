@@ -53,7 +53,12 @@ fun CardsPage(
                 modifier = Modifier.padding(vertical = 20.dp),
                 thickness = 2.dp,
             )
-            ProgressLevelList(cardCounts = cardCounts)
+            ProgressLevelList(
+                cardCounts = cardCounts,
+                onCategoryClick = { level ->
+                    navController.navigate(Page.CategoryWords.createRoute(level.name))
+                }
+            )
         }
     }
 }
@@ -75,7 +80,8 @@ fun AddFlashCardButton(navController: NavHostController) {
 
 @Composable
 fun ProgressLevelList(
-    cardCounts: Map<ProgressLevel, Int>
+    cardCounts: Map<ProgressLevel, Int>,
+    onCategoryClick: (ProgressLevel) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -104,7 +110,8 @@ fun ProgressLevelList(
 
                 ProgressLevelButton(
                     levelName = level.readable,
-                    wordAmount = amount.toString()
+                    wordAmount = amount.toString(),
+                    onClick = { onCategoryClick(level) }
                 )
             }
         }
@@ -112,9 +119,13 @@ fun ProgressLevelList(
 }
 
 @Composable
-fun ProgressLevelButton(levelName: String, wordAmount: String) {
+fun ProgressLevelButton(
+    levelName: String,
+    wordAmount: String,
+    onClick: () -> Unit
+) {
     Button(
-        onClick = { Log.d("CardsPage", "Progress level button clicked for $levelName") },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(45.dp),

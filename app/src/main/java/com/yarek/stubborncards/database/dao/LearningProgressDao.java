@@ -1,12 +1,14 @@
 package com.yarek.stubborncards.database.dao;
 
+import androidx.annotation.Nullable;
+import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.MapColumn;
-import androidx.room.MapInfo;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
+import com.yarek.stubborncards.model.FlashCard;
 import com.yarek.stubborncards.model.LearningProgress;
 import com.yarek.stubborncards.model.ProgressLevel;
 
@@ -32,4 +34,11 @@ public interface LearningProgressDao {
             @MapColumn(columnName = "level") ProgressLevel,
             @MapColumn(columnName = "count") Integer
             >> getProgressLevelCounts();
+
+    @Query("SELECT fc.* FROM flash_card fc " +
+            "INNER JOIN learning_progress lp ON fc.id = lp.flashCardId " +
+            "WHERE lp.level = :level AND (:searchQuery IS NULL OR fc.word LIKE :searchQuery) " +
+            "ORDER BY lp.lastReviewed ASC")
+    PagingSource<Integer, FlashCard> getCardsByLevelPaged(
+            ProgressLevel level, @Nullable String searchQuery);
 }
