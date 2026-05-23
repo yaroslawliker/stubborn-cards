@@ -14,16 +14,20 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.yarek.stubborncards.model.ProgressLevel
 import com.yarek.stubborncards.ui.layout.Page
 import com.yarek.stubborncards.ui.layout.PagePadding
 import com.yarek.stubborncards.ui.theme.Typography
+import com.yarek.stubborncards.ui.viewmodel.CardsViewModel
 
 /**
  * This function represents the page with general info about
@@ -36,20 +40,23 @@ import com.yarek.stubborncards.ui.theme.Typography
  */
 @Preview(showBackground = true)
 @Composable
-fun CardsPage(navController: NavHostController) {
+fun CardsPage(
+    navController: NavHostController,
+    viewModel: CardsViewModel = viewModel()
+) {
+    val cardCounts by viewModel.progressLevelCounts.collectAsState()
+
     PagePadding {
-        // All the content goes here
         Column {
-            AddFlashCardButton(navController);
+            AddFlashCardButton(navController)
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 20.dp),
                 thickness = 2.dp,
             )
-            ProgressLevelList();
-        }}
+            ProgressLevelList(cardCounts = cardCounts)
+        }
+    }
 }
-
-
 
 @Composable
 fun AddFlashCardButton(navController: NavHostController) {
@@ -62,24 +69,24 @@ fun AddFlashCardButton(navController: NavHostController) {
         Text(
             "Add a flash-card",
             style = Typography.titleMedium
-        );
+        )
     }
 }
 
 @Composable
-fun ProgressLevelList() {
-    Column(modifier = Modifier.fillMaxWidth()){
-        // Header
+fun ProgressLevelList(
+    cardCounts: Map<ProgressLevel, Int>
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Progress levels",
             textAlign = TextAlign.Center,
             style = Typography.titleLarge
-        );
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Description
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Your words will transit between this progress levels as you learn them.",
@@ -88,28 +95,30 @@ fun ProgressLevelList() {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Levels
-        Column (
+        Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             ProgressLevel.entries.forEach { level ->
-                ProgressLevelButton(level.readable, "40");
+                val amount = cardCounts[level] ?: 0
+
+                ProgressLevelButton(
+                    levelName = level.readable,
+                    wordAmount = amount.toString()
+                )
             }
         }
-
     }
 }
 
 @Composable
 fun ProgressLevelButton(levelName: String, wordAmount: String) {
     Button(
-        onClick = {Log.d("CardsPage", "Progress level button clicked")},
+        onClick = { Log.d("CardsPage", "Progress level button clicked for $levelName") },
         modifier = Modifier
             .fillMaxWidth()
             .height(45.dp),
-            shape = RoundedCornerShape(10.dp)
-
+        shape = RoundedCornerShape(10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -119,11 +128,11 @@ fun ProgressLevelButton(levelName: String, wordAmount: String) {
             Text(
                 levelName,
                 style = Typography.titleMedium
-            );
+            )
             Text(
                 wordAmount,
-                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f));
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f)
+            )
         }
     }
-
 }
