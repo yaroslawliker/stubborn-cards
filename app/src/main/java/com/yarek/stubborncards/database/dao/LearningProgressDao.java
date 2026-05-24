@@ -65,7 +65,14 @@ public interface LearningProgressDao {
      * Excludes cards whose scores match or exceed the target threshold unless their Test Interval lockout has passed.
      * The standard ISO text mapping format maps String dates flawlessly to Room LocalDateTime converters.
      */
-    @Query("SELECT fc.*, lp.* FROM flash_card fc " +
+    @Query("SELECT fc.*, " +
+            "lp.id AS progress_id, " +
+            "lp.score AS progress_score, " +
+            "lp.level AS progress_level, " +
+            "lp.isOnReview AS progress_isOnReview, " +
+            "lp.lastReviewed AS progress_lastReviewed, " +
+            "lp.flashCardId AS progress_flashCardId " +
+            "FROM flash_card fc " +
             "INNER JOIN learning_progress lp ON fc.id = lp.flashCardId " +
             "WHERE lp.level = :level " +
             "AND (lp.score < :reqScore " +
@@ -74,7 +81,7 @@ public interface LearningProgressDao {
     List<CardAndProgress> getExerciseBatchByLevel(
             ProgressLevel level,
             float reqScore,
-            long nowSeconds, // Pass System.currentTimeMillis() / 1000 here
+            long nowSeconds,
             long testIntervalSeconds,
             int limitAmount
     );
@@ -86,5 +93,8 @@ public interface LearningProgressDao {
     @Query("SELECT * FROM learning_progress WHERE level = :level ORDER BY lastReviewed ASC LIMIT 1")
     @Nullable
     LearningProgress peekOldestProgressInLevel(ProgressLevel level);
+
+    @Query("SELECT * FROM learning_progress")
+    List<LearningProgress> getAll();
 
 }

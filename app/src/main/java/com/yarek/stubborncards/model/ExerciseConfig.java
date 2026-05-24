@@ -26,5 +26,5 @@ public class ExerciseConfig {
     public String getId() { return id; }
     public String getName() { return name; }
     public Map<ProgressLevel, Integer> getLevelWeights() { return levelWeights; }
-    public boolean getSkipIneffective() { return skipIneffective; }
+    public boolean getSkipExhausted() { return skipIneffective; }
 }

@@ -1,6 +1,5 @@
 package com.yarek.stubborncards.ui.page
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,11 +23,11 @@ fun ExercisesHubPage(navController: NavHostController) {
 
     PagePadding {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Screen Header
+            // Screen Header Title
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp),
+                    .padding(top = 8.dp, bottom = 24.dp),
                 text = "Exercises",
                 textAlign = TextAlign.Center,
                 style = Typography.titleLarge.copy(fontWeight = FontWeight.Bold)
@@ -38,8 +37,8 @@ fun ExercisesHubPage(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp), // Enhanced spacing for readability
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 item {
                     ExerciseItemCard(
@@ -54,7 +53,7 @@ fun ExercisesHubPage(navController: NavHostController) {
                             )
                         },
                         extraContent = {
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             LevelSelectorDropdown(
                                 currentLevel = selectedLevel,
                                 onLevelSelected = { selectedLevel = it }
@@ -65,8 +64,8 @@ fun ExercisesHubPage(navController: NavHostController) {
 
                 item {
                     ExerciseItemCard(
-                        description = "Balanced session: 70% New Batch, 20% Clean Up, 7% Known, and 3% Learned words.",
-                        buttonText = "Fresh Mind",
+                        description = "Clean up fresh words with occurrences from different levels.",
+                        buttonText = "Balanced",
                         onClick = {
                             navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "fresh_mind"))
                         }
@@ -108,29 +107,23 @@ fun ExerciseItemCard(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.Start
     ) {
-        // Descriptive label copy block
+        // Descriptive context label block
         Text(
             text = description,
             style = Typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
         )
 
         extraContent?.invoke()
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Execution command button designed to match your mockup profile layout
         Button(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(55.dp)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(14.dp)
-                ),
+                .height(56.dp),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -139,7 +132,7 @@ fun ExerciseItemCard(
         ) {
             Text(
                 text = buttonText,
-                style = Typography.titleMedium.copy(fontWeight = FontWeight.Medium)
+                style = Typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
             )
         }
     }
@@ -165,25 +158,27 @@ fun LevelSelectorDropdown(
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable, true) // Explicit secure layout anchorage point parameter alignment
                 .fillMaxWidth()
         )
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            // Exclude MASTERED by default from standard exercise loops as it represents "learned forever"
             ProgressLevel.entries.filter { it != ProgressLevel.MASTERED }.forEach { level ->
                 DropdownMenuItem(
                     text = { Text(level.readable) },
                     onClick = {
                         onLevelSelected(level)
                         expanded = false
-                    }
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
             }
         }

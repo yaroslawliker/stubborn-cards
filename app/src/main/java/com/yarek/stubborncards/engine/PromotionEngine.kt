@@ -4,6 +4,7 @@ import com.yarek.stubborncards.model.LearningProgress
 import com.yarek.stubborncards.model.ProgressLevel
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 
 data class ProgressLevelConfig(
     val requiredScore: Float,
@@ -23,8 +24,8 @@ object PromotionEngine {
     // Default config values mapping
     val defaultProfileJson = """
         {
-          "NEW":         {"requiredScore": 5.0, "optimalIntervalSeconds": 20,    "testIntervalSeconds": 300},
-          "NEW_BATCH":   {"requiredScore": 5.0, "optimalIntervalSeconds": 20,    "testIntervalSeconds": 300},
+          "NEW":         {"requiredScore": 5.0, "optimalIntervalSeconds": 2,    "testIntervalSeconds": 20},
+          "NEW_BATCH":   {"requiredScore": 5.0, "optimalIntervalSeconds": 2,    "testIntervalSeconds": 20},
           "CLEAN_UP":    {"requiredScore": 5.0, "optimalIntervalSeconds": 600,   "testIntervalSeconds": 64800},
           "KNOWN":       {"requiredScore": 8.0, "optimalIntervalSeconds": 172800,"testIntervalSeconds": 604800},
           "LEARNED":     {"requiredScore": 4.0, "optimalIntervalSeconds": 3888000,"testIntervalSeconds": 15552000},
@@ -33,8 +34,8 @@ object PromotionEngine {
     """.trimIndent()
 
     val parsedConfig: Map<ProgressLevel, ProgressLevelConfig> = mapOf(
-        ProgressLevel.NEW to ProgressLevelConfig(5f, 20, 300),
-        ProgressLevel.NEW_BATCH to ProgressLevelConfig(5f, 20, 300),
+        ProgressLevel.NEW to ProgressLevelConfig(5f, 2, 20),
+        ProgressLevel.NEW_BATCH to ProgressLevelConfig(5f, 2, 20),
         ProgressLevel.CLEAN_UP to ProgressLevelConfig(5f, 600, 64800), // 18 Hours
         ProgressLevel.KNOWN to ProgressLevelConfig(8f, 172800, 604800), // 2 days / 7 days
         ProgressLevel.LEARNED to ProgressLevelConfig(4f, 3888000, 15552000), // 1.5 Months / 6 Months
@@ -44,15 +45,16 @@ object PromotionEngine {
     fun gradeCard(progress: LearningProgress, result: ReviewResult): LearningProgress {
         val currentLevel = progress.level
         val config = parsedConfig[currentLevel]!!
-        val now = LocalDateTime.now()
+        val now = LocalDateTime.now(UTC)
 
         when(result) {
             ReviewResult.CORRECT -> {
-                val intervalSeconds =
-                    if (progress.lastReviewed != null) Duration.between(progress.lastReviewed, now).seconds
-                    else config.optimalIntervalSeconds
+                val intervalSeconds = if (progress.lastReviewed != null) {
+                    Duration.between(progress.lastReviewed, now).seconds
+                } else {
+                    config.optimalIntervalSeconds
+                }
 
-                // Score tracking assignment using the dynamic s(interval) mathematical optimization rule
                 val scoreIncrement = if (intervalSeconds < config.optimalIntervalSeconds) {
                     intervalSeconds.toFloat() / config.optimalIntervalSeconds.toFloat()
                 } else {

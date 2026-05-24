@@ -186,7 +186,10 @@ fun CardDetailsContent(
             )
 
             InfoRow(label = "Level:", value = progress?.level?.readable ?: "Unassigned")
-            InfoRow(label = "Score:", value = "${progress?.score?.toInt() ?: 0}/5")
+            InfoRow(
+                label = "Score:",
+                value = "${String.format("%.1f", progress?.score ?: 0f)}/5"
+            )
         }
     }
 }

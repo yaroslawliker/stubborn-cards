@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
+import java.util.logging.Logger
 import kotlin.random.Random
 
 class ExerciseViewModel(
@@ -27,10 +29,11 @@ class ExerciseViewModel(
     private val exerciseId: String = savedStateHandle.get<String>("exerciseId") ?: "fresh_mind"
     private val levelParam: String? = savedStateHandle.get<String>("categoryName")
 
-    private val config = if (levelParam != null) {
+    private val exerciseConfig = if (levelParam != null) {
         ExerciseConfigRegistry.buildSingleCategoryConfig(ProgressLevel.valueOf(levelParam))
     } else {
-        if (exerciseId == "recap") ExerciseConfigRegistry.RECAP else ExerciseConfigRegistry.FRESH_MIND
+        if (exerciseId == "recap") ExerciseConfigRegistry.RECAP 
+        else ExerciseConfigRegistry.FRESH_MIND
     }
 
     private val _uiState = MutableStateFlow<ExerciseUiState>(ExerciseUiState.Loading)
@@ -39,7 +42,7 @@ class ExerciseViewModel(
     private val cardPool = mutableMapOf<ProgressLevel, ArrayDeque<CardAndProgress>>()
     private var activeCard: CardAndProgress? = null
 
-    private var adjustedWeights = config.levelWeights.toMutableMap()
+    private var currentWeights = exerciseConfig.levelWeights.toMutableMap()
 
     init {
         prefillAndValidateSession()
@@ -50,18 +53,22 @@ class ExerciseViewModel(
             var totalIneffectiveWeight = 0
             val exhaustedCategories = mutableListOf<ProgressLevel>()
 
-            for ((level, weight) in config.levelWeights) {
+            for ((level, weight) in exerciseConfig.levelWeights) {
                 cardPool[level] = ArrayDeque()
                 refetchPoolForLevel(level)
 
                 if (cardPool[level].isNullOrEmpty()) {
                     val oldestRecord = repository.peekOldestProgressInLevel(level)
                     if (oldestRecord != null) {
-                        val config = PromotionEngine.parsedConfig[level]
+                        val levelConstants = PromotionEngine.parsedConfig[level]
                         val lastTime = oldestRecord.lastReviewed
-                        val elapsedSeconds = if (lastTime != null) Duration.between(lastTime, LocalDateTime.now()).seconds else Long.MAX_VALUE
+                        val elapsedSeconds = 
+                            if (lastTime != null) Duration.between(
+                                lastTime, LocalDateTime.now(UTC)).seconds
+                            else Long.MAX_VALUE
 
-                        if (config != null && elapsedSeconds < config.optimalIntervalSeconds) {
+                        if (levelConstants != null 
+                            && elapsedSeconds < levelConstants.optimalIntervalSeconds) {
                             totalIneffectiveWeight += weight
                             exhaustedCategories.add(level)
                         }
@@ -74,49 +81,83 @@ class ExerciseViewModel(
 
             if (totalIneffectiveWeight >= 50) {
                 _uiState.value = ExerciseUiState.EffectivenessWarning(
-                    message = "Warning: you've reviewed all words from most of the categories in " +
-                            "this exercise. Consider changing the exercise, or taking a rest :)",
+                    message = "Warning: you've reviewed most of words from this exercise. " +
+                            "Consider changing the exercise, or taking a rest :)",
                     onProceed = {
-                        rebalanceWeights(exhaustedCategories)
+                        removeExhaustedWeightsIfConfigured(exhaustedCategories)
                         loadNextCard()
                     }
                 )
             } else {
-                rebalanceWeights(exhaustedCategories)
+                removeExhaustedWeightsIfConfigured(exhaustedCategories)
                 loadNextCard()
             }
         }
     }
 
-    private fun rebalanceWeights(exhausted: List<ProgressLevel>) {
-        if (!config.skipIneffective) return
-        exhausted.forEach { adjustedWeights.remove(it) }
+    private fun removeExhaustedWeightsIfConfigured(exhausted: List<ProgressLevel>) {
+        if (!exerciseConfig.skipExhausted) return
+        exhausted.forEach { level -> currentWeights[level] = 0 }
     }
 
     private suspend fun refetchPoolForLevel(level: ProgressLevel) {
-        val config = PromotionEngine.parsedConfig[level] ?: return
+        val levelConstants = PromotionEngine.parsedConfig[level] ?: return
         val currentQueue = cardPool[level] ?: return
 
-        if (currentQueue.size < 3) {
-            val itemsNeeded = 10 - currentQueue.size
+        val minWords = 3;
+        val maxWords = 10
+
+        if (currentQueue.size < minWords) {
+            val logger = Logger.getLogger("ExerciseViewModel")
+            logger.info("Refetching for level $level, current size: ${currentQueue.size}")
+            val itemsNeeded = maxWords - currentQueue.size
             val freshBatch = repository.fetchExerciseBatch(
                 level = level,
-                requiredScore = config.requiredScore,
-                testIntervalSeconds = config.testIntervalSeconds,
+                requiredScore = levelConstants.requiredScore,
+                testIntervalSeconds = levelConstants.testIntervalSeconds,
                 limit = itemsNeeded
             )
+            logger.info("Cards: $freshBatch")
             currentQueue.addAll(freshBatch)
+
+            // Restoring the batch if the elements become available
+            if (currentWeights[level] == 0 && freshBatch.isNotEmpty()) {
+                val originalWeight = exerciseConfig.levelWeights[level] ?: 0
+                currentWeights[level] = originalWeight
+            }
+
         }
     }
 
-
     fun submitAnswer(result: PromotionEngine.ReviewResult) {
         val current = activeCard ?: return
+
+        val progressData = current.progress
+        if (progressData == null) {
+            loadNextCard()
+            return
+        }
+
         _uiState.value = ExerciseUiState.Loading
 
         viewModelScope.launch {
-            val updatedProgress = PromotionEngine.gradeCard(current.progress, result)
+            val updatedProgress = PromotionEngine.gradeCard(progressData, result)
             repository.updateProgressState(updatedProgress)
+
+            val levelConstants = PromotionEngine.parsedConfig[updatedProgress.level]!!
+
+            cardPool.values.forEach { queue ->
+                queue.removeIf { cardAndProgress ->
+                    val isSameCard = cardAndProgress.flashCard.id == current.flashCard.id
+                    if (isSameCard) {
+                        cardAndProgress.progress = updatedProgress
+                        val isLockedOut = updatedProgress.score >= levelConstants.requiredScore
+                        isLockedOut
+                    } else {
+                        false
+                    }
+                }
+            }
 
             loadNextCard()
         }
@@ -124,58 +165,56 @@ class ExerciseViewModel(
 
     private fun loadNextCard() {
         viewModelScope.launch {
-            val rolledLevel = rollWeightWheel()
+            // This ensures cards whose timers just expired mid-session are instantly loaded.
+            currentWeights.keys.forEach { level ->
+                refetchPoolForLevel(level)
+            }
+
+            val activeLevels = currentWeights.keys.filter { level ->
+                val queue = cardPool[level]
+                queue != null && queue.isNotEmpty()
+            }
+
+            val rolledLevel = rollWeightWheelFromActive(activeLevels)
 
             if (rolledLevel == null) {
-                _uiState.value = ExerciseUiState.Finished(
-                    "All flashcards in the categories are reviewed. Good job!")
+                finishSession()
                 return@launch
             }
 
-            val targetQueue = cardPool[rolledLevel]
-            refetchPoolForLevel(rolledLevel)
+            val targetQueue = cardPool[rolledLevel]!!
+            val nextCardAndProgress = targetQueue.removeFirst()
 
-            if (targetQueue != null && targetQueue.isNotEmpty()) {
-                val nextCardAndProgress = targetQueue.removeFirst()
-                activeCard = nextCardAndProgress
-                _uiState.value = ExerciseUiState.PresentCard(nextCardAndProgress.flashCard)
-            } else {
-                // Fallback Radar Engine
-                var foundFallback = false
-                for (level in adjustedWeights.keys.filter { it != rolledLevel }) {
-                    refetchPoolForLevel(level)
-                    val fallbackQueue = cardPool[level]
-                    if (fallbackQueue != null && fallbackQueue.isNotEmpty()) {
-                        val nextCardAndProgress = fallbackQueue.removeFirst()
-                        activeCard = nextCardAndProgress
-                        _uiState.value = ExerciseUiState.PresentCard(nextCardAndProgress.flashCard)
-                        foundFallback = true
-                        break
-                    }
-                }
-
-                if (!foundFallback) {
-                    _uiState.value = ExerciseUiState.Finished("Session complete! No additional cards are ready for review right now.")
-                }
-            }
+            activeCard = nextCardAndProgress
+            _uiState.value = ExerciseUiState.PresentCard(nextCardAndProgress.flashCard)
         }
     }
 
-    private fun rollWeightWheel(): ProgressLevel? {
-        val totalWeightSum = adjustedWeights.values.sum()
-        if (totalWeightSum == 0) return null
+    private fun rollWeightWheelFromActive(activeLevels: List<ProgressLevel>): ProgressLevel? {
+        if (activeLevels.isEmpty()) return null
+
+        // Calculate total weight sum using only the currently active levels
+        val totalWeightSum = activeLevels.sumOf { currentWeights[it] ?: 0 }
+        if (totalWeightSum == 0) return activeLevels.randomOrNull()
 
         val roll = Random.nextInt(0, totalWeightSum)
         var cumulativeSum = 0
 
-        for ((level, weight) in adjustedWeights) {
+        for (level in activeLevels) {
+            val weight = currentWeights[level] ?: 0
             cumulativeSum += weight
             if (roll < cumulativeSum) {
                 return level
             }
         }
-        return adjustedWeights.keys.firstOrNull()
+        return activeLevels.firstOrNull()
     }
+
+    private fun finishSession() {
+        _uiState.value = ExerciseUiState.Finished(
+            "All flashcards in the exercise are already reviewed. Good job!")
+    }
+
 
     sealed interface ExerciseUiState {
         object Loading : ExerciseUiState

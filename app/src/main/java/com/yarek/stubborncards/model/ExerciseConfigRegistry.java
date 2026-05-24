@@ -20,7 +20,8 @@ public final class ExerciseConfigRegistry {
                         ProgressLevel.NEW_BATCH, 70,
                         ProgressLevel.CLEAN_UP, 20,
                         ProgressLevel.KNOWN, 7,
-                        ProgressLevel.LEARNED, 3)
+                        ProgressLevel.LEARNED, 3),
+                false
         );
 
         RECAP = new ExerciseConfig(
@@ -29,7 +30,8 @@ public final class ExerciseConfigRegistry {
                 Map.of(
                         ProgressLevel.CLEAN_UP, 75,
                         ProgressLevel.KNOWN, 20,
-                        ProgressLevel.LEARNED, 5)
+                        ProgressLevel.LEARNED, 5),
+                true
         );
     }
 
