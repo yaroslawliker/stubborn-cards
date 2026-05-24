@@ -46,7 +46,6 @@ class FlashCardRepository(context: Context) {
                     score = 0.0f
                     isOnReview = false
                     lastReviewed = null
-                    beforeLastReviewed = null
                 }
                 // Save the progress properties row
                 progressDao.insert(initialProgress)

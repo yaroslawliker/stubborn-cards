@@ -17,4 +17,14 @@ sealed class Page(val route: String) {
     object EditCard : Page("edit_card/{cardId}") {
         fun createRoute(cardId: Long) = "edit_card/$cardId"
     }
+
+    object ExerciseSession : Page("exercise_session/{exerciseId}?categoryName={categoryName}") {
+        fun createRoute(exerciseId: String, categoryName: String? = null): String {
+            return if (categoryName != null) {
+                "exercise_session/$exerciseId?categoryName=$categoryName"
+            } else {
+                "exercise_session/$exerciseId"
+            }
+        }
+    }
 }

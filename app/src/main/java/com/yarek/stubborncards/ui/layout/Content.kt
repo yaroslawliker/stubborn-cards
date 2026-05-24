@@ -20,6 +20,7 @@ import androidx.navigation.navArgument
 import com.yarek.stubborncards.ui.page.AddFlashcardPage
 import com.yarek.stubborncards.ui.page.CardsPage
 import com.yarek.stubborncards.ui.page.EditCardPage
+import com.yarek.stubborncards.ui.page.ExercisesHubPage
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.page.ProgressLevelWordsPage
 import com.yarek.stubborncards.ui.page.UnitCardPage
@@ -38,7 +39,7 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
     ) {
         composable(route=Page.Cards.route) { CardsPage(navController) }
         composable(route=Page.Home.route) { DummyContent("Home") }
-        composable(route=Page.Learn.route) { DummyContent("Learn") }
+        composable(route=Page.Learn.route) { ExercisesHubPage(navController) }
         composable(route=Page.AddFlashcard.route) { AddFlashcardPage() }
 
         composable(
@@ -61,6 +62,20 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
         ) {
             EditCardPage(onNavigateBack = { navController.navigateUp() })
         }
+
+//        composable(
+//            route = Page.ExerciseSession.route,
+//            arguments = listOf(
+//                navArgument("exerciseId") { type = NavType.StringType },
+//                navArgument("categoryName") {
+//                    type = NavType.StringType
+//                    nullable = true
+//                    defaultValue = null
+//                }
+//            )
+//        ) {
+////            ExerciseSessionPage(navController = navController)
+//        }
     }
 }
 
