@@ -21,7 +21,10 @@ import java.time.LocalDateTime;
                 childColumns = "flashCardId",
                 onDelete = ForeignKey.CASCADE
         ),
-        indices = @Index(value = {"flashCardId"}, unique = true)
+        indices = {
+                @Index(value = {"flashCardId"}, unique = true),
+                @Index(value = {"level", "lastReviewed"})
+        }
 )
 public class LearningProgress {
 
@@ -39,13 +42,12 @@ public class LearningProgress {
     private boolean isOnReview;
     /** Datetime of the last review session */
     @Nullable
-    private LocalDateTime lastReviewed;
-    /** Datetime of the the review session before last */
-    @Nullable
-    private LocalDateTime beforeLastReviewed;
+    private LocalDateTime lastReviewed; // Stored as Unix epoch seconds
+
     private Long flashCardId;
 
     // Getters and Setters
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -61,9 +63,7 @@ public class LearningProgress {
     public boolean isOnReview() { return isOnReview; }
     public void setOnReview(boolean onReview) { this.isOnReview = onReview; }
 
+    @Nullable
     public LocalDateTime getLastReviewed() { return lastReviewed; }
-    public void setLastReviewed(LocalDateTime lastReviewed) { this.lastReviewed = lastReviewed; }
-
-    public LocalDateTime getBeforeLastReviewed() { return beforeLastReviewed; }
-    public void setBeforeLastReviewed(LocalDateTime beforeLastReviewed) { this.beforeLastReviewed = beforeLastReviewed; }
+    public void setLastReviewed(@Nullable LocalDateTime lastReviewed) { this.lastReviewed = lastReviewed; }
 }

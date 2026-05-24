@@ -4,28 +4,26 @@ import androidx.annotation.Nullable;
 import androidx.room.TypeConverter;
 import com.yarek.stubborncards.model.ProgressLevel;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
 
 public class RoomConverters {
-    
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    // --- 1. LocalDateTime Converters ---
-    
+    // --- LocalDateTime to Unix Epoch Seconds (Long) ---
+
     @TypeConverter
     @Nullable
-    public static String fromLocalDateTime(LocalDateTime dateTime) {
-        return dateTime == null ? null : dateTime.format(formatter);
+    public static Long fromLocalDateTime(@Nullable LocalDateTime dateTime) {
+        return dateTime == null ? null : dateTime.toEpochSecond(ZoneOffset.UTC);
     }
 
     @TypeConverter
     @Nullable
-    public static LocalDateTime toLocalDateTime(String dateTimeString) {
-        return dateTimeString == null ? null : LocalDateTime.parse(dateTimeString, formatter);
+    public static LocalDateTime toLocalDateTime(@Nullable Long epochSeconds) {
+        return epochSeconds == null ? null : LocalDateTime.ofEpochSecond(epochSeconds, 0, ZoneOffset.UTC);
     }
 
-    // --- 2. ProgressLevel Enum Converters ---
-    
+    // --- ProgressLevel Enum Converters ---
+
     @TypeConverter
     @Nullable
     public static String fromProgressLevel(ProgressLevel level) {

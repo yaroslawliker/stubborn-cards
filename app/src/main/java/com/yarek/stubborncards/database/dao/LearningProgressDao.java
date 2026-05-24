@@ -9,6 +9,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import com.yarek.stubborncards.model.CardAndProgress;
 import com.yarek.stubborncards.model.FlashCard;
 import com.yarek.stubborncards.model.LearningProgress;
 import com.yarek.stubborncards.model.ProgressLevel;
@@ -57,4 +58,33 @@ public interface LearningProgressDao {
             "WHERE lp.level = :level " +
             "ORDER BY lp.lastReviewed ASC")
     List<Long> getCardIdsByLevel(ProgressLevel level);
+
+
+    /**
+     * Fetches the oldest reviewed card rows within a category that are legally ready for review.
+     * Excludes cards whose scores match or exceed the target threshold unless their Test Interval lockout has passed.
+     * The standard ISO text mapping format maps String dates flawlessly to Room LocalDateTime converters.
+     */
+    @Query("SELECT fc.*, lp.* FROM flash_card fc " +
+            "INNER JOIN learning_progress lp ON fc.id = lp.flashCardId " +
+            "WHERE lp.level = :level " +
+            "AND (lp.score < :reqScore " +
+            "OR (lp.score >= :reqScore AND (:nowSeconds - lp.lastReviewed) >= :testIntervalSeconds)) " +
+            "ORDER BY lp.lastReviewed ASC LIMIT :limitAmount")
+    List<CardAndProgress> getExerciseBatchByLevel(
+            ProgressLevel level,
+            float reqScore,
+            long nowSeconds, // Pass System.currentTimeMillis() / 1000 here
+            long testIntervalSeconds,
+            int limitAmount
+    );
+
+    /**
+     * Quick peek tracking query to check the single oldest card in a category,
+     * regardless of whether it's locked, to compute exhaustion states.
+     */
+    @Query("SELECT * FROM learning_progress WHERE level = :level ORDER BY lastReviewed ASC LIMIT 1")
+    @Nullable
+    LearningProgress peekOldestProgressInLevel(ProgressLevel level);
+
 }

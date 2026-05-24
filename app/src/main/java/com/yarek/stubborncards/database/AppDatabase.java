@@ -17,7 +17,7 @@ import com.yarek.stubborncards.model.LearningProgress;
                 FlashCard.class,
                 LearningProgress.class
         },
-        version = 3,
+        version = 4,
         exportSchema = false)
 @TypeConverters({RoomConverters.class})
 public abstract class AppDatabase extends RoomDatabase {
