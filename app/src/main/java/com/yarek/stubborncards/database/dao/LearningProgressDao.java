@@ -80,7 +80,7 @@ public interface LearningProgressDao {
             "ORDER BY lp.lastReviewed ASC LIMIT :limitAmount")
     List<CardAndProgress> getExerciseBatchByLevel(
             ProgressLevel level,
-            float reqScore,
+            int reqScore,
             long nowSeconds,
             long testIntervalSeconds,
             int limitAmount

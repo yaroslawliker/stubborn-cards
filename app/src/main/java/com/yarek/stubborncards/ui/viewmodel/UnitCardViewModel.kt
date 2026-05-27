@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.yarek.stubborncards.config.AppConfigManager
 import com.yarek.stubborncards.database.repository.FlashCardRepository
+import com.yarek.stubborncards.engine.PromotionEngine
 import com.yarek.stubborncards.model.FlashCard
 import com.yarek.stubborncards.model.LearningProgress
 import com.yarek.stubborncards.model.ProgressLevel
@@ -50,11 +52,14 @@ class UnitCardViewModel(
 
                 repository.getCardDetailsFlow(targetId).map { (card, progress) ->
                     if (card != null) {
+                        val targetScore = AppConfigManager.getInstance()
+                            .currentPromotionTable[currentLevel]?.requiredScore ?: -1
                         UiState.Success(
                             card = card,
                             progress = progress,
                             hasPrevious = index > 0,
-                            hasNext = index < cardIdsList.size - 1
+                            hasNext = index < cardIdsList.size - 1,
+                            requiredScore = targetScore
                         )
                     } else {
                         UiState.Error("Failed to load card details")
@@ -82,7 +87,8 @@ class UnitCardViewModel(
             val card: FlashCard,
             val progress: LearningProgress?,
             val hasPrevious: Boolean,
-            val hasNext: Boolean
+            val hasNext: Boolean,
+            val requiredScore: Int
         ) : UiState
         data class Error(val message: String) : UiState
     }

@@ -1,5 +1,6 @@
 package com.yarek.stubborncards.engine
 
+import com.yarek.stubborncards.config.AppConfigManager
 import com.yarek.stubborncards.model.LearningProgress
 import com.yarek.stubborncards.model.ProgressLevel
 import java.time.Duration
@@ -7,7 +8,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 
 data class ProgressLevelConfig(
-    val requiredScore: Float,
+    val requiredScore: Int,
     val optimalIntervalSeconds: Long,
     val testIntervalSeconds: Long
 )
@@ -21,60 +22,53 @@ object PromotionEngine {
         WRONG
     }
 
-    // Default config values mapping
-    val defaultProfileJson = """
-        {
-          "NEW":         {"requiredScore": 5.0, "optimalIntervalSeconds": 2,    "testIntervalSeconds": 20},
-          "NEW_BATCH":   {"requiredScore": 5.0, "optimalIntervalSeconds": 2,    "testIntervalSeconds": 20},
-          "CLEAN_UP":    {"requiredScore": 5.0, "optimalIntervalSeconds": 600,   "testIntervalSeconds": 64800},
-          "KNOWN":       {"requiredScore": 8.0, "optimalIntervalSeconds": 172800,"testIntervalSeconds": 604800},
-          "LEARNED":     {"requiredScore": 4.0, "optimalIntervalSeconds": 3888000,"testIntervalSeconds": 15552000},
-          "MASTERED":    {"requiredScore": 999.0,"optimalIntervalSeconds": 31536000,"testIntervalSeconds": 31536000}
-        }
-    """.trimIndent()
+    public fun getPromotionTable(): Map<ProgressLevel, ProgressLevelConfig> {
+        return AppConfigManager.getInstance().currentPromotionTable
+    }
 
-    val parsedConfig: Map<ProgressLevel, ProgressLevelConfig> = mapOf(
-        ProgressLevel.NEW to ProgressLevelConfig(5f, 2, 20),
-        ProgressLevel.NEW_BATCH to ProgressLevelConfig(5f, 2, 20),
-        ProgressLevel.CLEAN_UP to ProgressLevelConfig(5f, 600, 64800), // 18 Hours
-        ProgressLevel.KNOWN to ProgressLevelConfig(8f, 172800, 604800), // 2 days / 7 days
-        ProgressLevel.LEARNED to ProgressLevelConfig(4f, 3888000, 15552000), // 1.5 Months / 6 Months
-        ProgressLevel.MASTERED to ProgressLevelConfig(999f, 31536000, 31536000)
-    )
+    public fun getLevelConfig(level: ProgressLevel): ProgressLevelConfig {
+        return getPromotionTable()[level] ?: throw IllegalStateException(
+            "No config found for level $level")
+    }
+
 
     fun gradeCard(progress: LearningProgress, result: ReviewResult): LearningProgress {
         val currentLevel = progress.level
-        val config = parsedConfig[currentLevel]!!
+        val config = getLevelConfig(currentLevel)
         val now = LocalDateTime.now(UTC)
 
         when(result) {
             ReviewResult.CORRECT -> {
-                val intervalSeconds = if (progress.lastReviewed != null) {
-                    Duration.between(progress.lastReviewed, now).seconds
+
+                if (progress.isOnReview) {
+                    progress.isOnReview = false
                 } else {
-                    config.optimalIntervalSeconds
-                }
-
-                val scoreIncrement = if (intervalSeconds < config.optimalIntervalSeconds) {
-                    intervalSeconds.toFloat() / config.optimalIntervalSeconds.toFloat()
-                } else {
-                    1.0f
-                }
-
-                val tentativeScore = progress.score + scoreIncrement
-
-                if (tentativeScore >= config.requiredScore) {
-                    // If the card hits the required score threshold while on a test state, promote it
-                    if (progress.score >= config.requiredScore) {
-                        progress.level = getNextLevel(currentLevel)
-                        progress.score = 0f
-                        progress.isOnReview = false
+                    val intervalSeconds = if (progress.lastReviewed != null) {
+                        Duration.between(progress.lastReviewed, now).seconds
                     } else {
-                        // Enter initial test review blackout state
-                        progress.score = config.requiredScore
+                        config.optimalIntervalSeconds
                     }
-                } else {
-                    progress.score = tentativeScore
+
+                    val scoreIncrement = if (intervalSeconds < config.optimalIntervalSeconds) {
+                        intervalSeconds.toFloat() / config.optimalIntervalSeconds.toFloat()
+                    } else {
+                        1.0f
+                    }
+
+                    val tentativeScore = progress.score + scoreIncrement
+
+                    if (tentativeScore >= config.requiredScore) {
+                        // If the card hits the required score threshold while on a test state, promote it
+                        if (progress.score >= config.requiredScore) {
+                            progress.level = getNextLevel(currentLevel)
+                            progress.score = 0f
+                        } else {
+                            // Enter initial test review blackout state
+                            progress.score = config.requiredScore.toFloat()
+                        }
+                    } else {
+                        progress.score = tentativeScore
+                    }
                 }
             }
             ReviewResult.WRONG -> {
@@ -113,6 +107,7 @@ object PromotionEngine {
         ProgressLevel.MASTERED -> ProgressLevel.LEARNED
         ProgressLevel.LEARNED -> ProgressLevel.KNOWN
         ProgressLevel.KNOWN -> ProgressLevel.CLEAN_UP
-        ProgressLevel.CLEAN_UP, ProgressLevel.NEW_BATCH, ProgressLevel.NEW -> ProgressLevel.NEW_BATCH
+        ProgressLevel.CLEAN_UP, ProgressLevel.NEW_BATCH -> ProgressLevel.NEW_BATCH
+        ProgressLevel.NEW -> ProgressLevel.NEW
     }
 }

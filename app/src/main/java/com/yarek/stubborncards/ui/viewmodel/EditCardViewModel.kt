@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.yarek.stubborncards.config.AppConfigManager
 import com.yarek.stubborncards.database.repository.FlashCardRepository
 import com.yarek.stubborncards.model.FlashCard
 import com.yarek.stubborncards.model.LearningProgress
@@ -24,8 +25,6 @@ class EditCardViewModel(
 
     private val _uiState = MutableStateFlow<EditUiState>(EditUiState.Loading)
     val uiState = _uiState.asStateFlow()
-
-    val maxScoreLimit = 5
 
     private val _wordInput = MutableStateFlow("")
     val wordInput = _wordInput.asStateFlow()
@@ -60,7 +59,11 @@ class EditCardViewModel(
                         isInitialLoadComplete = true
                     }
 
-                    _uiState.value = EditUiState.Success(progress)
+                    val dynamicMaxScore = progress?.level?.let { level ->
+                        AppConfigManager.getInstance().currentPromotionTable[level]?.requiredScore
+                    } ?: -1
+
+                    _uiState.value = EditUiState.Success(progress, dynamicMaxScore)
                 } else {
                     _uiState.value = EditUiState.Error("Card missing")
                 }
@@ -90,7 +93,12 @@ class EditCardViewModel(
 
     fun adjustScoreInstant(amount: Int) {
         val currentScore = loadedProgress?.score ?: 0f
-        val calculatedScore = (currentScore + amount).coerceIn(0f, maxScoreLimit.toFloat())
+
+        val currentMaxScore = loadedProgress?.level?.let { level ->
+            AppConfigManager.getInstance().currentPromotionTable[level]?.requiredScore
+        } ?: 5
+
+        val calculatedScore = (currentScore + amount).coerceIn(0f, currentMaxScore.toFloat())
         viewModelScope.launch {
             repository.updateProgressScoreDirectly(cardId, calculatedScore)
         }
@@ -98,7 +106,7 @@ class EditCardViewModel(
 
     sealed interface EditUiState {
         object Loading : EditUiState
-        data class Success(val progress: LearningProgress?) : EditUiState
+        data class Success(val progress: LearningProgress?, val maxScore: Int) : EditUiState
         data class Error(val message: String) : EditUiState
     }
 }

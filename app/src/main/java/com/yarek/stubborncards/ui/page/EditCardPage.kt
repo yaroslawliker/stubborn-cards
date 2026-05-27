@@ -38,7 +38,7 @@ fun EditCardPage(
                     word = word,
                     translation = translation,
                     progress = state.progress,
-                    maxScore = viewModel.maxScoreLimit,
+                    maxScore = state.maxScore,
                     onWordChange = { viewModel.onWordTextChanged(it) },
                     onTranslationChange = { viewModel.onTranslationTextChanged(it) },
                     onSaveClick = { viewModel.saveTextChanges(onNavigateBack) },
@@ -117,7 +117,7 @@ fun EditCardContent(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // 1. Level Selection Dropdown Row
+            // Level Selection Dropdown Row
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -164,7 +164,7 @@ fun EditCardContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 2. Score Variable Modifier Row Component
+            // Score Variable Modifier Row Component
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

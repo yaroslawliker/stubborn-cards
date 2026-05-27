@@ -49,6 +49,7 @@ fun UnitCardPage(
                     progress = state.progress,
                     hasPrevious = state.hasPrevious,
                     hasNext = state.hasNext,
+                    requiredScore = state.requiredScore,
                     onPreviousClick = { viewModel.navigateToPreviousCard() },
                     onNextClick = { viewModel.navigateToNextCard() }
                 )
@@ -69,10 +70,10 @@ fun CardDetailsContent(
     progress: LearningProgress?,
     hasPrevious: Boolean,
     hasNext: Boolean,
+    requiredScore: Int,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit
 ) {
-    // We key remember to card.id so that flipping resets when navigating between different words
     var showTranslation by remember(card.id) { mutableStateOf(false) }
     var isPressed by remember { mutableStateOf(false) }
 
@@ -88,7 +89,6 @@ fun CardDetailsContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Dynamic Title row with Mockup Navigation Switches
         Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -97,7 +97,7 @@ fun CardDetailsContent(
             FilledTonalIconButton(
                 onClick = onPreviousClick,
                 enabled = hasPrevious,
-                shape = RoundedCornerShape(12.dp), // Distinct square-ish look from mockup
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.size(45.dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous Card")
@@ -188,7 +188,7 @@ fun CardDetailsContent(
             InfoRow(label = "Level:", value = progress?.level?.readable ?: "Unassigned")
             InfoRow(
                 label = "Score:",
-                value = "${String.format("%.1f", progress?.score ?: 0f)}/5"
+                value = "${String.format("%.1f", progress?.score ?: 0f)}/${requiredScore}"
             )
         }
     }

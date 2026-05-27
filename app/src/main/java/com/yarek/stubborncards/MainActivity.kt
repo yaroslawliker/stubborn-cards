@@ -6,12 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.yarek.stubborncards.config.AppConfigManager
 import com.yarek.stubborncards.ui.layout.AppLayout
 import com.yarek.stubborncards.ui.theme.StubbornCardsTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppConfigManager.initialize(applicationContext)
         enableEdgeToEdge()
         setContent {
             StubbornCardsTheme {

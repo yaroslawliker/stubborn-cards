@@ -15,7 +15,7 @@ class ExerciseRepository(context: Context) {
 
     suspend fun fetchExerciseBatch(
         level: ProgressLevel,
-        requiredScore: Float,
+        requiredScore: Int,
         testIntervalSeconds: Long,
         limit: Int
     ): List<CardAndProgress> = withContext(Dispatchers.IO) {

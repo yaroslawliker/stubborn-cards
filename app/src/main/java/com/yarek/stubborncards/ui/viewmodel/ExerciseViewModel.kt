@@ -60,7 +60,7 @@ class ExerciseViewModel(
                 if (cardPool[level].isNullOrEmpty()) {
                     val oldestRecord = repository.peekOldestProgressInLevel(level)
                     if (oldestRecord != null) {
-                        val levelConstants = PromotionEngine.parsedConfig[level]
+                        val levelConstants = PromotionEngine.getLevelConfig(level)
                         val lastTime = oldestRecord.lastReviewed
                         val elapsedSeconds = 
                             if (lastTime != null) Duration.between(
@@ -101,7 +101,7 @@ class ExerciseViewModel(
     }
 
     private suspend fun refetchPoolForLevel(level: ProgressLevel) {
-        val levelConstants = PromotionEngine.parsedConfig[level] ?: return
+        val levelConstants = PromotionEngine.getLevelConfig(level) ?: return
         val currentQueue = cardPool[level] ?: return
 
         val minWords = 3;
@@ -144,7 +144,7 @@ class ExerciseViewModel(
             val updatedProgress = PromotionEngine.gradeCard(progressData, result)
             repository.updateProgressState(updatedProgress)
 
-            val levelConstants = PromotionEngine.parsedConfig[updatedProgress.level]!!
+            val levelConstants = PromotionEngine.getLevelConfig(updatedProgress.level)
 
             cardPool.values.forEach { queue ->
                 queue.removeIf { cardAndProgress ->

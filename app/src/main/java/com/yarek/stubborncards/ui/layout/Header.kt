@@ -41,7 +41,7 @@ fun Header(header: String, navController: NavHostController) {
                 }
             } else {
                 // Main root pages keep the menu hamburger look
-                IconButton(onClick = {}) {
+                IconButton(onClick = { navController.navigate(Page.SetupPromotionTable.route) }) {
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Open settings"
