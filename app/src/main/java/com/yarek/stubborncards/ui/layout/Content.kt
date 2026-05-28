@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.yarek.stubborncards.ui.page.AddFlashcardPage
+import com.yarek.stubborncards.ui.page.AiExerciseSessionPage
 import com.yarek.stubborncards.ui.page.AiSettingsPage
 import com.yarek.stubborncards.ui.page.CardsPage
 import com.yarek.stubborncards.ui.page.EditCardPage
@@ -82,6 +83,9 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
             )
         ) {
             ExerciseSessionPage(navController = navController)
+        }
+        composable(route = Page.AiExerciseSession.route) {
+            AiExerciseSessionPage(navController = navController)
         }
     }
 }

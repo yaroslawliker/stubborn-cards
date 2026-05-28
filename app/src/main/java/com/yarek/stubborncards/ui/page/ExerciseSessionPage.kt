@@ -236,7 +236,7 @@ fun SessionFinishedComponent(
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Back to Hub Dashboard")
+            Text("Repeat the exercise")
         }
     }
 }

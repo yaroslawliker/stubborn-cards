@@ -19,6 +19,10 @@ import java.time.ZoneOffset.UTC
 import java.util.logging.Logger
 import kotlin.random.Random
 
+/**
+ * This viewmodel is used for ordinary exercises.
+ * See AiExerciseViewModel for AI powered exercises.
+ */
 class ExerciseViewModel(
     application: Application,
     savedStateHandle: SavedStateHandle

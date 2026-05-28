@@ -31,4 +31,6 @@ sealed class Page(val route: String) {
             }
         }
     }
+
+    object AiExerciseSession : Page("ai_exercise_session");
 }

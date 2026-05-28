@@ -42,6 +42,16 @@ fun ExercisesHubPage(navController: NavHostController) {
             ) {
                 item {
                     ExerciseItemCard(
+                        description = "Practice with AI generated sentences!",
+                        buttonText = "Context practice",
+                        onClick = {
+                            navController.navigate(Page.AiExerciseSession.route)
+                        }
+                    )
+                }
+
+                item {
+                    ExerciseItemCard(
                         description = "Choose a specific single category level you want to focus your drills on exclusively.",
                         buttonText = "${selectedLevel.readable} Focus",
                         onClick = {
