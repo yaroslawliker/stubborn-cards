@@ -6,7 +6,9 @@ sealed class Page(val route: String) {
     object Learn : Page("learn")
     object AddFlashcard : Page("add_flashcard")
 
+    object SettingsMenu : Page("settings_manu")
     object SetupPromotionTable : Page("setup_promotion_table")
+    object AiSettings: Page("ai_settings")
 
     object CategoryWords : Page("category_words/{categoryName}") {
         fun createRoute(categoryName: String) = "category_words/$categoryName"

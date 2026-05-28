@@ -90,4 +90,7 @@ dependencies {
 
     implementation(libs.androidx.paging.compose)
     implementation(libs.gson)
+
+    // Android AI API client
+    implementation(libs.generativeai)
 }

@@ -19,6 +19,7 @@ class AppConfigManager private constructor(context: Context) {
 
     /** Name of the promotion table preference */
     private val TABLE_PREF_NAME = "custom_promotion_table"
+    private val ANDROID_AI_TOKEN_PROP_NAME = "android_ai_token"
 
     private val defaultPromotionTable: Map<ProgressLevel, ProgressLevelConfig> = mapOf(
         ProgressLevel.NEW to ProgressLevelConfig(5, 2, 20),
@@ -32,8 +33,12 @@ class AppConfigManager private constructor(context: Context) {
     var currentPromotionTable: Map<ProgressLevel, ProgressLevelConfig> = emptyMap()
         private set
 
+    var androidAiToken: String = ""
+        private set
+
     init {
         loadPromotionTable()
+        loadAndroidApToken()
     }
 
     companion object {
@@ -80,5 +85,15 @@ class AppConfigManager private constructor(context: Context) {
         // Magic thing, search online: Super Type Token
         val type = object : TypeToken<Map<ProgressLevel, ProgressLevelConfig>>() {}.type
         return gson.fromJson(json, type)
+    }
+
+    fun loadAndroidApToken() {
+        val token = prefs.getString(ANDROID_AI_TOKEN_PROP_NAME, null)
+        androidAiToken = token ?: ""
+    }
+
+    fun saveAndroidAiToken(token: String) {
+        prefs.edit { putString(ANDROID_AI_TOKEN_PROP_NAME, token) }
+        androidAiToken = token
     }
 }

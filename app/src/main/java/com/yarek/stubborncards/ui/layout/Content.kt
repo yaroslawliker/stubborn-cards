@@ -18,12 +18,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.yarek.stubborncards.ui.page.AddFlashcardPage
+import com.yarek.stubborncards.ui.page.AiSettingsPage
 import com.yarek.stubborncards.ui.page.CardsPage
 import com.yarek.stubborncards.ui.page.EditCardPage
 import com.yarek.stubborncards.ui.page.ExerciseSessionPage
 import com.yarek.stubborncards.ui.page.ExercisesHubPage
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.page.ProgressLevelWordsPage
+import com.yarek.stubborncards.ui.page.SettingsMenuPage
 import com.yarek.stubborncards.ui.page.SetupPromotionTablePage
 import com.yarek.stubborncards.ui.page.UnitCardPage
 
@@ -43,7 +45,9 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
         composable(route=Page.Home.route) { DummyContent("Home") }
         composable(route=Page.Learn.route) { ExercisesHubPage(navController) }
         composable(route=Page.AddFlashcard.route) { AddFlashcardPage() }
+        composable(route=Page.SettingsMenu.route) { SettingsMenuPage(navController) }
         composable(route=Page.SetupPromotionTable.route) { SetupPromotionTablePage() }
+        composable(route=Page.AiSettings.route) { AiSettingsPage() }
 
         composable(
             route = Page.CategoryWords.route,
