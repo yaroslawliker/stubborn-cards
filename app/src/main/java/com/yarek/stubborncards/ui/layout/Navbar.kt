@@ -38,7 +38,11 @@ fun Navbar(navController: NavHostController) {
         items.map {
             NavigationBarItem(
                 selected = currentRoute == it.route,
-                onClick = { navController.navigate(it.route) },
+                onClick = {
+                    navController.navigate(it.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 icon = {
                     Icon(
                         imageVector = it.icon,
