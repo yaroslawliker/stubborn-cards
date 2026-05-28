@@ -29,7 +29,7 @@ class ProgressLevelWordsViewModel(
         savedStateHandle.get<String>("categoryName") ?: ProgressLevel.NEW.name
     )
 
-    private val _showTranslations = MutableStateFlow(true)
+    private val _showTranslations = MutableStateFlow(false)
     val showTranslations = _showTranslations.asStateFlow()
 
     fun onToggleTranslations(show: Boolean) {
