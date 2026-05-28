@@ -20,6 +20,7 @@ uiToolingPreview = "1.10.3"
 runtime = "1.11.2"
 
 [libraries]
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 # 👇 Uniformly tied all Room components to the stable 2.6.1 version reference
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }

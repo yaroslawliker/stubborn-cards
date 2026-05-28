@@ -2,115 +2,103 @@ package com.yarek.stubborncards.ui.page
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.yarek.stubborncards.model.ProgressLevel
+import com.yarek.stubborncards.ui.common.SectionHorizontalDivider
 import com.yarek.stubborncards.ui.layout.PagePadding
 import com.yarek.stubborncards.ui.layout.Page
 import com.yarek.stubborncards.ui.theme.Typography
 
+data class ExerciseOption(
+    val description: String,
+    val buttonText: String,
+    val onClick: () -> Unit,
+    val buttonIcon: ImageVector? = null,
+    val extraContent: @Composable (() -> Unit)? = null
+)
+
 @Composable
 fun ExercisesHubPage(navController: NavHostController) {
-    // Local memory tracking state for the dynamic "Chosen Level" selector lane
     var selectedLevel by remember { mutableStateOf(ProgressLevel.NEW_BATCH) }
+
+    val exerciseOptions = listOf(
+        ExerciseOption(
+            description = "Practice your words with AI generated sentences.",
+            buttonText = "Context practice",
+            buttonIcon = Icons.Default.AutoAwesome,
+            onClick = { navController.navigate(Page.AiExerciseSession.route) }
+        ),
+        ExerciseOption(
+            description = "Focus on new words with a bit of old ones",
+            buttonText = "Fresh mind",
+            onClick = {
+                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "fresh_mind"))
+            }
+        ),
+        ExerciseOption(
+            description = "Learn words from Clean up progress level, with a bit of words from higher levels.",
+            buttonText = "Daily Recap",
+            onClick = {
+                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "recap"))
+            }
+        ),
+        ExerciseOption(
+            description = "Choose a specific single category level you want to focus on exclusively.",
+            buttonText = "${selectedLevel.readable} Focus",
+            onClick = {
+                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "single_drill", categoryName = selectedLevel.name))
+            },
+            extraContent = {
+                Spacer(modifier = Modifier.height(8.dp))
+                LevelSelectorDropdown(currentLevel = selectedLevel, onLevelSelected = { selectedLevel = it })
+            }
+        )
+    )
 
     PagePadding {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Screen Header Title
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 24.dp),
-                text = "Exercises",
-                textAlign = TextAlign.Center,
-                style = Typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(24.dp), // Enhanced spacing for readability
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                item {
+                itemsIndexed(exerciseOptions) { index, option ->
                     ExerciseItemCard(
-                        description = "Practice with AI generated sentences!",
-                        buttonText = "Context practice",
-                        onClick = {
-                            navController.navigate(Page.AiExerciseSession.route)
-                        }
+                        description = option.description,
+                        buttonText = option.buttonText,
+                        onClick = option.onClick,
+                        buttonIcon = option.buttonIcon,
+                        extraContent = option.extraContent
                     )
-                }
+                    if (setOf(0, 2).contains(index)) {
+                        SectionHorizontalDivider()
+                    } else {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
-                item {
-                    ExerciseItemCard(
-                        description = "Choose a specific single category level you want to focus your drills on exclusively.",
-                        buttonText = "${selectedLevel.readable} Focus",
-                        onClick = {
-                            navController.navigate(
-                                Page.ExerciseSession.createRoute(
-                                    exerciseId = "single_drill",
-                                    categoryName = selectedLevel.name
-                                )
-                            )
-                        },
-                        extraContent = {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LevelSelectorDropdown(
-                                currentLevel = selectedLevel,
-                                onLevelSelected = { selectedLevel = it }
-                            )
-                        }
-                    )
-                }
-
-                item {
-                    ExerciseItemCard(
-                        description = "Clean up fresh words with occurrences from different levels.",
-                        buttonText = "Balanced",
-                        onClick = {
-                            navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "fresh_mind"))
-                        }
-                    )
-                }
-
-                item {
-                    ExerciseItemCard(
-                        description = "Focus heavily on short-term memory maintenance and reviewing active Clean-up groups.",
-                        buttonText = "Daily Recap",
-                        onClick = {
-                            navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "recap"))
-                        }
-                    )
-                }
-
-                item {
-                    ExerciseItemCard(
-                        description = "Dig deep into the vault: Longest neglected cards that are reaching deep storage intervals.",
-                        buttonText = "Old Words",
-                        onClick = {
-                            navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "old_words"))
-                        }
-                    )
                 }
             }
         }
     }
 }
-
 @Composable
 fun ExerciseItemCard(
     description: String,
     buttonText: String,
     onClick: () -> Unit,
+    buttonIcon: ImageVector? = null,
     extraContent: @Composable (() -> Unit)? = null
 ) {
     Column(
@@ -129,21 +117,26 @@ fun ExerciseItemCard(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Button(
+        Button (
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 text = buttonText,
                 style = Typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
             )
+
+            if (buttonIcon != null) {
+                Icon(
+                    imageVector = buttonIcon,
+                    contentDescription = "AI Icon",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
         }
     }
 }
@@ -164,7 +157,7 @@ fun LevelSelectorDropdown(
             readOnly = true,
             value = currentLevel.readable,
             onValueChange = {},
-            label = { Text("Selected Level Target") },
+            label = { Text("Selected Progress Level") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,

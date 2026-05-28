@@ -8,6 +8,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.yarek.stubborncards.database.AppDatabase
 import com.yarek.stubborncards.database.dao.FlashCardDao
 import com.yarek.stubborncards.model.FlashCard
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -65,17 +67,18 @@ class FlashCardDaoTest {
     }
 
     @Test
-    fun updateCard() {
+    fun updateCard() = runBlocking {
         val card = FlashCard("cat", "кіт")
         val id = dao.insert(card)
-        card.setId(id) // Set it back on the card object
+        card.id = id
 
-        card.setTranslation("котик")
+        card.translation = "котик"
         dao.update(card)
 
-        val updated = dao.getById(id)
+        val updated = dao.getById(id).first()
+
         assert(updated != null)
-        assert(updated?.translation == "котик")
+        assert(updated.translation == "котик")
     }
 
     @Test
@@ -91,14 +94,15 @@ class FlashCardDaoTest {
     }
 
     @Test
-    fun getCardById() {
+    fun getCardById() = runBlocking {
         val card = FlashCard("water", "вода")
         val id = dao.insert(card)
 
-        val retrieved = dao.getById(id)
+        val retrieved = dao.getById(id).first()
+
         assert(retrieved != null)
-        assert(retrieved?.word == "water")
-        assert(retrieved?.translation == "вода")
+        assert(retrieved.word == "water")
+        assert(retrieved.translation == "вода")
     }
 }
 
@@ -116,7 +120,7 @@ fun <T> androidx.lifecycle.LiveData<T>.getValueBlocking(): T? {
             result = value
             latch.countDown()
         }
-        observeForever(observer!!)
+        observeForever(observer)
     }
 
     // Wait for first value emission
@@ -128,7 +132,7 @@ fun <T> androidx.lifecycle.LiveData<T>.getValueBlocking(): T? {
     // Remove observer on main thread
     if (observer != null) {
         Handler(Looper.getMainLooper()).post {
-            removeObserver(observer!!)
+            removeObserver(observer)
         }
     }
 

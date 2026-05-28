@@ -18,11 +18,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.yarek.stubborncards.model.ProgressLevel
+import com.yarek.stubborncards.ui.common.SectionHorizontalDivider
 import com.yarek.stubborncards.ui.layout.Page
 import com.yarek.stubborncards.ui.layout.PagePadding
 import com.yarek.stubborncards.ui.theme.Typography
@@ -37,7 +37,6 @@ import com.yarek.stubborncards.ui.viewmodel.CardsViewModel
  * - See amount of words in each progress level
  * - See words by a progress level
  */
-@Preview(showBackground = true)
 @Composable
 fun CardsPage(
     navController: NavHostController,
@@ -48,10 +47,7 @@ fun CardsPage(
     PagePadding {
         Column {
             AddFlashCardButton(navController)
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 20.dp),
-                thickness = 2.dp,
-            )
+            SectionHorizontalDivider()
             ProgressLevelList(
                 cardCounts = cardCounts,
                 onCategoryClick = { level ->
