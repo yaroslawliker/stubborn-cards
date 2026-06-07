@@ -75,6 +75,12 @@ fun ActiveWorkoutComponent(
 ) {
     var hasBeenFlipped by remember(card.id) { mutableStateOf(false) }
 
+    val buttonsAlpha by animateFloatAsState(
+        targetValue = if (hasBeenFlipped) 1f else 0f,
+        animationSpec = tween(if (hasBeenFlipped) 300 else 150),
+        label = "ButtonsAlpha"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -168,56 +174,54 @@ fun ActiveWorkoutComponent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        AnimatedVisibility(
-            visible = hasBeenFlipped,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(150))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppDimensions.pageHorizontal)
+                .graphicsLayer { alpha = buttonsAlpha },
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            Text(
+                text = "How did you get it?",
+                style = Typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = AppDimensions.pageHorizontal),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(start = 8.dp, end = 8.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    text = "How did you get it?",
-                    style = Typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp, end = 8.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                Button(
+                    onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.WRONG) },
+                    enabled = hasBeenFlipped,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Button(
-                        onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.WRONG) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Wrong", color = MaterialTheme.colorScheme.onErrorContainer, fontWeight = FontWeight.Bold)
-                    }
+                    Text("Wrong", color = MaterialTheme.colorScheme.onErrorContainer, fontWeight = FontWeight.Bold)
+                }
 
-                    Button(
-                        onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.ALMOST_CORRECT) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Almost", color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold)
-                    }
+                Button(
+                    onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.ALMOST_CORRECT) },
+                    enabled = hasBeenFlipped,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Almost", color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold)
+                }
 
-                    Button(
-                        onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.CORRECT) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Right", color = MaterialTheme.colorScheme.onSecondaryContainer, fontWeight = FontWeight.Bold)
-                    }
+                Button(
+                    onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.CORRECT) },
+                    enabled = hasBeenFlipped,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Right", color = MaterialTheme.colorScheme.onSecondaryContainer, fontWeight = FontWeight.Bold)
                 }
             }
         }
