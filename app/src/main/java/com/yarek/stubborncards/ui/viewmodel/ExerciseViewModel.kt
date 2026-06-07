@@ -112,6 +112,8 @@ class ExerciseViewModel(
         val maxWords = 10
 
         if (currentQueue.size < minWords) {
+            _uiState.value = ExerciseUiState.Loading
+
             val logger = Logger.getLogger("ExerciseViewModel")
             logger.info("Refetching for level $level, current size: ${currentQueue.size}")
             val itemsNeeded = maxWords - currentQueue.size
@@ -141,8 +143,6 @@ class ExerciseViewModel(
             loadNextCard()
             return
         }
-
-        _uiState.value = ExerciseUiState.Loading
 
         viewModelScope.launch {
             val updatedProgress = PromotionEngine.gradeCard(progressData, result)

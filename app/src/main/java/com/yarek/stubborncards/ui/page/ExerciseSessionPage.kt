@@ -1,10 +1,13 @@
 package com.yarek.stubborncards.ui.page
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.yarek.stubborncards.engine.PromotionEngine
 import com.yarek.stubborncards.model.FlashCard
-import com.yarek.stubborncards.ui.layout.PagePadding
+import com.yarek.stubborncards.ui.theme.AppDimensions
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.viewmodel.ExerciseViewModel
 
@@ -31,37 +34,35 @@ fun ExerciseSessionPage(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    PagePadding {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            when (val state = uiState) {
-                is ExerciseViewModel.ExerciseUiState.Loading -> {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when (val state = uiState) {
+            is ExerciseViewModel.ExerciseUiState.Loading -> {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
 
-                is ExerciseViewModel.ExerciseUiState.EffectivenessWarning -> {
-                    EffectivenessWarningComponent(
-                        message = state.message,
-                        onProceed = { state.onProceed() },
-                        onBack = { navController.popBackStack() }
-                    )
-                }
+            is ExerciseViewModel.ExerciseUiState.EffectivenessWarning -> {
+                EffectivenessWarningComponent(
+                    message = state.message,
+                    onProceed = { state.onProceed() },
+                    onBack = { navController.popBackStack() }
+                )
+            }
 
-                is ExerciseViewModel.ExerciseUiState.PresentCard -> {
-                    ActiveWorkoutComponent(
-                        card = state.card,
-                        onAnswerSubmitted = { result -> viewModel.submitAnswer(result) }
-                    )
-                }
+            is ExerciseViewModel.ExerciseUiState.PresentCard -> {
+                ActiveWorkoutComponent(
+                    card = state.card,
+                    onAnswerSubmitted = { result -> viewModel.submitAnswer(result) }
+                )
+            }
 
-                is ExerciseViewModel.ExerciseUiState.Finished -> {
-                    SessionFinishedComponent(
-                        summaryText = state.summary,
-                        onExit = { navController.popBackStack() }
-                    )
-                }
+            is ExerciseViewModel.ExerciseUiState.Finished -> {
+                SessionFinishedComponent(
+                    summaryText = state.summary,
+                    onExit = { navController.popBackStack() }
+                )
             }
         }
     }
@@ -72,17 +73,12 @@ fun ActiveWorkoutComponent(
     card: FlashCard,
     onAnswerSubmitted: (PromotionEngine.ReviewResult) -> Unit
 ) {
-    var isFlipped by remember(card.id) { mutableStateOf(false) }
     var hasBeenFlipped by remember(card.id) { mutableStateOf(false) }
 
-    val rotationAnimation by animateFloatAsState(
-        targetValue = if (isFlipped) 180f else 0f,
-        animationSpec = tween(durationMillis = 400),
-        label = "CardFlipAnimation"
-    )
-
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = AppDimensions.pageVertical),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -95,46 +91,77 @@ fun ActiveWorkoutComponent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Card(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-                .graphicsLayer {
-                    rotationY = rotationAnimation
-                    cameraDistance = 8 * density
-                }
-                .clickable {
-                    isFlipped = !isFlipped
-                    hasBeenFlipped = true
-                },
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-            )
+                .weight(1f),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                if (rotationAnimation <= 90f) {
-                    Text(
-                        text = card.word,
-                        style = Typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(24.dp)
+            AnimatedContent(
+                targetState = card,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(200)) togetherWith
+                            slideOutHorizontally(
+                                targetOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(400)
+                            ) + fadeOut(animationSpec = tween(400))).apply {
+                        targetContentZIndex = -1f
+                    }
+                },
+                label = "CardStackTransition"
+            ) { currentCard ->
+
+                var isFlipped by remember(currentCard.id) { mutableStateOf(false) }
+
+                val rotationAnimation by animateFloatAsState(
+                    targetValue = if (isFlipped) 180f else 0f,
+                    animationSpec = tween(durationMillis = 400),
+                    label = "CardFlipAnimation"
+                )
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = AppDimensions.cardAnimatedHorizontal)
+                        .graphicsLayer {
+                            rotationY = rotationAnimation
+                            cameraDistance = 8 * density
+                        }
+                        .clickable {
+                            isFlipped = !isFlipped
+                            if (currentCard.id == card.id) {
+                                hasBeenFlipped = true
+                            }
+                        },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                     )
-                } else {
-                    Text(
-                        text = card.translation,
-                        style = Typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(24.dp)
-                            .graphicsLayer { rotationY = 180f } // Mirror text back to readable direction
-                    )
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (rotationAnimation <= 90f) {
+                            Text(
+                                text = currentCard.word,
+                                style = Typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = currentCard.translation,
+                                style = Typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .padding(24.dp)
+                                    .graphicsLayer { rotationY = 180f }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -144,10 +171,12 @@ fun ActiveWorkoutComponent(
         AnimatedVisibility(
             visible = hasBeenFlipped,
             enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut()
+            exit = fadeOut(animationSpec = tween(150))
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = AppDimensions.pageHorizontal),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -220,7 +249,9 @@ fun SessionFinishedComponent(
     onExit: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(24.dp),
+        modifier = Modifier.fillMaxWidth().padding(
+            AppDimensions.pageHorizontal,
+            AppDimensions.pageVertical),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

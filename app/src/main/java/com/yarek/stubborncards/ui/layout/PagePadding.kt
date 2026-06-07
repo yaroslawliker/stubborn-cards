@@ -5,13 +5,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.yarek.stubborncards.ui.theme.AppDimensions
 
 @Composable
 fun PagePadding(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
-            .padding(40.dp, 20.dp)
+            .padding(
+                AppDimensions.pageHorizontal,
+                AppDimensions.pageVertical)
     ) {
-        content();
+        content()
     }
 }
