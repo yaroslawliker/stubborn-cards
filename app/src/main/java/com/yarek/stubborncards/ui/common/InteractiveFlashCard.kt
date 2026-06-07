@@ -18,15 +18,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.yarek.stubborncards.ui.theme.Typography
 
-/** Represents interactive flash-card that can be flipped */
 @Composable
-fun InteractiveFlashCard(
-    word: String,
-    translation: String,
+fun FlippableCardWrapper(
     modifier: Modifier = Modifier,
-    onCardFlipped: () -> Unit = {}
+    onCardFlipped: () -> Unit = {},
+    frontContent: @Composable () -> Unit,
+    backContent: @Composable () -> Unit
 ) {
-    var isFlipped by remember(word) { mutableStateOf(false) }
+    var isFlipped by remember { mutableStateOf(false) }
 
     val rotationAnimation by animateFloatAsState(
         targetValue = if (isFlipped) 180f else 0f,
@@ -52,41 +51,51 @@ fun InteractiveFlashCard(
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
-        Column(
+        Box(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            contentAlignment = Alignment.Center
         ) {
             if (rotationAnimation <= 90f) {
-                Text(
-                    text = "Question", 
-                    style = Typography.labelMedium, 
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = word,
-                    style = Typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
+                frontContent()
             } else {
-                Text(
-                    text = "Answer", 
-                    style = Typography.labelMedium, 
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.graphicsLayer { rotationY = 180f }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = translation,
-                    style = Typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp)
-                        .graphicsLayer { rotationY = 180f }
-                )
+                Box(modifier = Modifier.graphicsLayer { rotationY = 180f }) {
+                    backContent()
+                }
             }
         }
     }
+}
+
+/** Standard interactive flash-card mapping */
+@Composable
+fun InteractiveFlashCard(
+    word: String,
+    translation: String,
+    modifier: Modifier = Modifier,
+    onCardFlipped: () -> Unit = {}
+) {
+    FlippableCardWrapper(
+        modifier = modifier,
+        onCardFlipped = onCardFlipped,
+        frontContent = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("Question", style = Typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(word, style = Typography.headlineMedium.copy(fontWeight = FontWeight.Bold), textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 24.dp))
+            }
+        },
+        backContent = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("Answer", style = Typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(translation, style = Typography.headlineMedium.copy(fontWeight = FontWeight.Medium), textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 24.dp))
+            }
+        }
+    )
 }

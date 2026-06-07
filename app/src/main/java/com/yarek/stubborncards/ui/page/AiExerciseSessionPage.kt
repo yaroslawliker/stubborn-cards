@@ -1,10 +1,12 @@
 package com.yarek.stubborncards.ui.page
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +26,8 @@ import androidx.navigation.NavHostController
 import com.yarek.stubborncards.ai.AiCard
 import com.yarek.stubborncards.engine.PromotionEngine
 import com.yarek.stubborncards.model.CardAndProgress
-import com.yarek.stubborncards.ui.layout.PagePadding
+import com.yarek.stubborncards.ui.common.FlippableCardWrapper
+import com.yarek.stubborncards.ui.theme.AppDimensions
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.viewmodel.AiExerciseViewModel
 
@@ -35,54 +38,44 @@ fun AiExerciseSessionPage(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    PagePadding {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            when (val state = uiState) {
-                is AiExerciseViewModel.AiExerciseUiState.Initial -> {
-                    AiInitialComponent(
-                        onStart = { cleanUp, known, strict ->
-                            viewModel.prepareAiCards(cleanUp, known, strict)
-                        }
-                    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when (val state = uiState) {
+            is AiExerciseViewModel.AiExerciseUiState.Initial -> {
+                AiInitialComponent(
+                    onStart = { cleanUp, known, strict -> viewModel.prepareAiCards(cleanUp, known, strict) }
+                )
+            }
+            is AiExerciseViewModel.AiExerciseUiState.Generating -> {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("AI is generating practice sentences...", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-
-                is AiExerciseViewModel.AiExerciseUiState.Generating -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("AI is generating practice sentences...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+            }
+            is AiExerciseViewModel.AiExerciseUiState.PresentCard -> {
+                AiActiveWorkoutComponent(
+                    aiCard = state.aiCard,
+                    dbCard = state.dbCard,
+                    onAnswerSubmitted = { result, isWeird -> viewModel.submitAnswer(result, isWeird) }
+                )
+            }
+            is AiExerciseViewModel.AiExerciseUiState.Error -> {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(state.message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { viewModel.prepareAiCards(4, 2, false) }) { Text("Try Again") }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(onClick = { navController.popBackStack() }) { Text("Go Back") }
                 }
-
-                is AiExerciseViewModel.AiExerciseUiState.PresentCard -> {
-                    AiActiveWorkoutComponent(
-                        aiCard = state.aiCard,
-                        dbCard = state.dbCard,
-                        onAnswerSubmitted = { result, isWeird ->
-                            viewModel.submitAnswer(result, isWeird)
-                        }
-                    )
-                }
-
-                is AiExerciseViewModel.AiExerciseUiState.Error -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(state.message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.prepareAiCards(4, 2, false) }) { Text("Try Again") }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedButton(onClick = { navController.popBackStack() }) { Text("Go Back") }
-                    }
-                }
-
-                is AiExerciseViewModel.AiExerciseUiState.Finished -> {
-                    SessionFinishedComponent(
-                        summaryText = state.summary,
-                        onExit = { viewModel.repeatSession() }
-                    )
-                }
+            }
+            is AiExerciseViewModel.AiExerciseUiState.Finished -> {
+                SessionFinishedComponent(
+                    summaryText = state.summary,
+                    onExit = { viewModel.repeatSession() }
+                )
             }
         }
     }
@@ -195,19 +188,26 @@ fun AiInitialComponent(
 fun AiActiveWorkoutComponent(
     aiCard: AiCard,
     dbCard: CardAndProgress,
-    onAnswerSubmitted: (PromotionEngine.ReviewResult, Boolean) -> Unit // Result, isWeird flag
+    onAnswerSubmitted: (PromotionEngine.ReviewResult, Boolean) -> Unit
 ) {
-    var isFlipped by remember(aiCard.targetWord) { mutableStateOf(false) }
     var hasBeenFlipped by remember(aiCard.targetWord) { mutableStateOf(false) }
 
-    val rotationAnimation by animateFloatAsState(
-        targetValue = if (isFlipped) 180f else 0f,
-        animationSpec = tween(durationMillis = 400),
-        label = "CardFlipAnimation"
+    val zIndexBucket = remember { floatArrayOf(0f) }
+    val dynamicZIndex = remember(aiCard.targetWord) {
+        zIndexBucket[0] -= 1f
+        zIndexBucket[0]
+    }
+
+    val buttonsAlpha by animateFloatAsState(
+        targetValue = if (hasBeenFlipped) 1f else 0f,
+        animationSpec = tween(if (hasBeenFlipped) 300 else 150),
+        label = "ButtonsAlpha"
     )
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = AppDimensions.pageVertical),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -220,71 +220,78 @@ fun AiActiveWorkoutComponent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Card(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-                .graphicsLayer {
-                    rotationY = rotationAnimation
-                    cameraDistance = 8 * density
-                }
-                .clickable {
-                    isFlipped = !isFlipped
-                    hasBeenFlipped = true
-                },
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-            )
+                .weight(1f),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (rotationAnimation <= 90f) {
-                    Text(
-                        text = aiCard.targetLanguageSentence,
-                        style = Typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        textAlign = TextAlign.Center
-                    )
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.graphicsLayer { rotationY = 180f }
-                    ) {
-                        // Show the translation of the sentence
-                        Text(
-                            text = aiCard.translation,
-                            style = Typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Explicitly highlight the target word mapping
-                        Text(
-                            text = "Target Word:",
-                            style = Typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${dbCard.flashCard.word} → ${dbCard.flashCard.translation}",
-                            style = Typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
+            AnimatedContent (
+                targetState = Pair(aiCard, dbCard),
+                transitionSpec = {
+                    (EnterTransition.None togetherWith
+                            slideOutHorizontally (
+                                targetOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(400)
+                            )).apply {
+                        targetContentZIndex = dynamicZIndex
                     }
-                }
+                },
+                label = "CardStackTransition"
+            ) { (currentAi, currentDb) ->
+
+                FlippableCardWrapper (
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = AppDimensions.cardAnimatedHorizontal),
+                    onCardFlipped = {
+                        if (currentAi.targetWord == aiCard.targetWord) {
+                            hasBeenFlipped = true
+                        }
+                    },
+                    frontContent = {
+                        Text(
+                            text = currentAi.targetLanguageSentence,
+                            style = Typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(24.dp)
+                        )
+                    },
+                    backContent = {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Text(
+                                text = currentAi.translation,
+                                style = Typography.titleLarge,
+                                color = MaterialTheme.colorScheme.secondary,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Text(
+                                text = "Target Word:",
+                                style = Typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "${currentDb.flashCard.word} → ${currentDb.flashCard.translation}",
+                                style = Typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                    }
+                )
             }
         }
 
-        // The dedicated, smaller "Skip / Weird" button
         TextButton(
             onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.ALMOST_CORRECT, true) },
             modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
@@ -298,53 +305,52 @@ fun AiActiveWorkoutComponent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        AnimatedVisibility(
-            visible = hasBeenFlipped,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppDimensions.pageHorizontal)
+                .graphicsLayer { alpha = buttonsAlpha },
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Text(
+                text = "How did you do?",
+                style = Typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "How did you do?",
-                    style = Typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                // The standard 3 grading buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Button(
+                    onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.WRONG, false) },
+                    enabled = hasBeenFlipped,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.weight(1f).height(55.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Button(
-                        onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.WRONG, false) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        modifier = Modifier.weight(1f).height(55.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Wrong", color = MaterialTheme.colorScheme.onErrorContainer, fontWeight = FontWeight.Bold)
-                    }
+                    Text("Wrong", color = MaterialTheme.colorScheme.onErrorContainer, fontWeight = FontWeight.Bold)
+                }
 
-                    Button(
-                        onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.ALMOST_CORRECT, false) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                        modifier = Modifier.weight(1f).height(55.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Almost", color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold)
-                    }
+                Button(
+                    onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.ALMOST_CORRECT, false) },
+                    enabled = hasBeenFlipped,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                    modifier = Modifier.weight(1f).height(55.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Almost", color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold)
+                }
 
-                    Button(
-                        onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.CORRECT, false) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                        modifier = Modifier.weight(1f).height(55.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Right", color = MaterialTheme.colorScheme.onSecondaryContainer, fontWeight = FontWeight.Bold)
-                    }
+                Button(
+                    onClick = { onAnswerSubmitted(PromotionEngine.ReviewResult.CORRECT, false) },
+                    enabled = hasBeenFlipped,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    modifier = Modifier.weight(1f).height(55.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Right", color = MaterialTheme.colorScheme.onSecondaryContainer, fontWeight = FontWeight.Bold)
                 }
             }
         }
