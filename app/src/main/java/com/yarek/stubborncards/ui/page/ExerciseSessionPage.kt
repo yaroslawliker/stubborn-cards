@@ -1,14 +1,11 @@
 package com.yarek.stubborncards.ui.page
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -23,6 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.yarek.stubborncards.engine.PromotionEngine
 import com.yarek.stubborncards.model.FlashCard
+import com.yarek.stubborncards.ui.common.InteractiveFlashCard
 import com.yarek.stubborncards.ui.theme.AppDimensions
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.viewmodel.ExerciseViewModel
@@ -75,6 +73,12 @@ fun ActiveWorkoutComponent(
 ) {
     var hasBeenFlipped by remember(card.id) { mutableStateOf(false) }
 
+    val zIndexBucket = remember { floatArrayOf(0f) }
+    val dynamicZIndex = remember(card.id) {
+        zIndexBucket[0] -= 1f
+        zIndexBucket[0]
+    }
+
     val buttonsAlpha by animateFloatAsState(
         targetValue = if (hasBeenFlipped) 1f else 0f,
         animationSpec = tween(if (hasBeenFlipped) 300 else 150),
@@ -106,69 +110,29 @@ fun ActiveWorkoutComponent(
             AnimatedContent(
                 targetState = card,
                 transitionSpec = {
-                    (fadeIn(animationSpec = tween(200)) togetherWith
+                    (EnterTransition.None togetherWith
                             slideOutHorizontally(
                                 targetOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(400)
-                            ) + fadeOut(animationSpec = tween(400))).apply {
-                        targetContentZIndex = -1f
+                            )).apply {
+                        targetContentZIndex = dynamicZIndex
                     }
                 },
                 label = "CardStackTransition"
             ) { currentCard ->
 
-                var isFlipped by remember(currentCard.id) { mutableStateOf(false) }
-
-                val rotationAnimation by animateFloatAsState(
-                    targetValue = if (isFlipped) 180f else 0f,
-                    animationSpec = tween(durationMillis = 400),
-                    label = "CardFlipAnimation"
-                )
-
-                Card(
+                InteractiveFlashCard(
+                    word = currentCard.word,
+                    translation = currentCard.translation,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = AppDimensions.cardAnimatedHorizontal)
-                        .graphicsLayer {
-                            rotationY = rotationAnimation
-                            cameraDistance = 8 * density
-                        }
-                        .clickable {
-                            isFlipped = !isFlipped
-                            if (currentCard.id == card.id) {
-                                hasBeenFlipped = true
-                            }
-                        },
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (rotationAnimation <= 90f) {
-                            Text(
-                                text = currentCard.word,
-                                style = Typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(24.dp)
-                            )
-                        } else {
-                            Text(
-                                text = currentCard.translation,
-                                style = Typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .padding(24.dp)
-                                    .graphicsLayer { rotationY = 180f }
-                            )
+                        .padding(horizontal = AppDimensions.cardAnimatedHorizontal),
+                    onCardFlipped = {
+                        if (currentCard.id == card.id) {
+                            hasBeenFlipped = true
                         }
                     }
-                }
+                )
             }
         }
 
@@ -254,8 +218,8 @@ fun SessionFinishedComponent(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(
-            AppDimensions.pageHorizontal,
-            AppDimensions.pageVertical),
+            horizontal = AppDimensions.pageHorizontal,
+            vertical = AppDimensions.pageVertical),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

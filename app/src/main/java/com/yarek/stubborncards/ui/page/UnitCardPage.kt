@@ -1,10 +1,5 @@
 package com.yarek.stubborncards.ui.page
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,11 +16,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.yarek.stubborncards.model.FlashCard
 import com.yarek.stubborncards.model.LearningProgress
+import com.yarek.stubborncards.ui.common.InteractiveFlashCard
 import com.yarek.stubborncards.ui.layout.Page
 import com.yarek.stubborncards.ui.layout.PagePadding
 import com.yarek.stubborncards.ui.theme.Typography
 import com.yarek.stubborncards.ui.viewmodel.UnitCardViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun UnitCardPage(
@@ -74,16 +68,6 @@ fun CardDetailsContent(
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit
 ) {
-    var showTranslation by remember(card.id) { mutableStateOf(false) }
-    var isPressed by remember { mutableStateOf(false) }
-
-    val coroutineScope = rememberCoroutineScope()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 1.05f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.5f, stiffness = 300f),
-        label = "CardScaleAnimation"
-    )
-
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -120,48 +104,13 @@ fun CardDetailsContent(
             }
         }
 
-        // Flash-card Interactive Presentation Canvas Container
-        Surface(
+        InteractiveFlashCard(
+            word = card.word,
+            translation = card.translation,
             modifier = Modifier
                 .fillMaxWidth()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .border(
-                    width = 2.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(24.dp)
-                )
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    coroutineScope.launch {
-                        isPressed = true
-                        showTranslation = !showTranslation
-                        kotlinx.coroutines.delay(80)
-                        isPressed = false
-                    }
-                },
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (!showTranslation) {
-                    Text(text = "Question", style = Typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = card.word, style = Typography.headlineMedium, textAlign = TextAlign.Center)
-                } else {
-                    Text(text = "Answer", style = Typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = card.translation, style = Typography.headlineMedium, textAlign = TextAlign.Center)
-                }
-            }
-        }
+                .height(240.dp)
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
