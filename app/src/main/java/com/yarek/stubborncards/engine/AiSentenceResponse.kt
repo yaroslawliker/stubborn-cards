@@ -71,13 +71,14 @@ class SentenceGenerator {
                 You will receive a list of target words with translations in format "word - translation"
                 
                 RULES:
-                1. Generate one sentence for each Target Word.
-                2. Each sentence MUST contain exactly one Target Word.
-                3. ${strictWordsRule}
-                4. Generate translation for each sentence.
-                5. DO NOT output any conversational text, greetings, or explanations.
-                6. The sentence must be in the same language as a Target word, the translation must be in the same language as word's translation.
-                7. YOU MUST RESPOND IN VALID JSON FORMAT MATCHING THIS EXACT SCHEMA:
+                1. Generate one sentence for each target word.
+                2. Each sentence MUST contain exactly one target word.
+                3. The target word's form may differ from the form from the list, so that letter-case, time, gender ect correspond to the language rules and sentence context.
+                4. ${strictWordsRule}
+                5. Generate translation for each sentence.
+                6. DO NOT output any conversational text, greetings, or explanations.
+                7. The sentence must be in the same language as a target word, the translation must be in the same language as the word's translation.
+                8. YOU MUST RESPOND IN VALID JSON FORMAT MATCHING THIS EXACT SCHEMA:
                 {
                   "sentences": [
                     {
@@ -86,13 +87,14 @@ class SentenceGenerator {
                       "sentenceTranslation": "..."
                     }
                   ]
-                }                
+                }
+                9. "targetWord" field must contain the target word, not the word's translation
 
 
-                Target Words and translations:
+                Target words and their translations:
                 $targetWordsString
 
-                Known Words and translations:
+                Known words and their translations:
                 $knownWordsString
             """.trimIndent()
 
