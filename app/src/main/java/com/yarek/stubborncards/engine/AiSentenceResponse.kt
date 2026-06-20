@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.logging.Logger
 
 data class AiSentenceResponse(
     val sentences: List<AiCard>
@@ -14,7 +15,7 @@ data class AiSentenceResponse(
 data class AiCard(
     val targetWord: String,
     val targetLanguageSentence: String,
-    val translation: String
+    val sentenceTranslation: String
 )
 
 sealed class AiGenerationResult {
@@ -25,6 +26,8 @@ sealed class AiGenerationResult {
 }
 
 class SentenceGenerator {
+
+    private val logger = Logger.getLogger("SentenceGenerator")
 
     private val gson = Gson()
 
@@ -65,24 +68,26 @@ class SentenceGenerator {
             val prompt = """
                 You are a strict language learning assistant. 
                 Generate practice sentences for a student.
-                You will receive a list of target words (with translations)
+                You will receive a list of target words with translations in format "word - translation"
                 
                 RULES:
                 1. Generate one sentence for each Target Word.
                 2. Each sentence MUST contain exactly one Target Word.
                 3. ${strictWordsRule}
-                4. DO NOT output any conversational text, greetings, or explanations.
-                5. YOU MUST RESPOND IN VALID JSON FORMAT MATCHING THIS EXACT SCHEMA:
-                6. The sentence must be in the same language as Target word, the translation must be in the same language as word's translation.
+                4. Generate translation for each sentence.
+                5. DO NOT output any conversational text, greetings, or explanations.
+                6. The sentence must be in the same language as a Target word, the translation must be in the same language as word's translation.
+                7. YOU MUST RESPOND IN VALID JSON FORMAT MATCHING THIS EXACT SCHEMA:
                 {
                   "sentences": [
                     {
                       "targetWord": "...",
                       "targetLanguageSentence": "...",
-                      "translation": "..."
+                      "sentenceTranslation": "..."
                     }
                   ]
-                }
+                }                
+
 
                 Target Words and translations:
                 $targetWordsString
@@ -92,6 +97,7 @@ class SentenceGenerator {
             """.trimIndent()
 
             val response = generativeModel.generateContent(prompt)
+            logger.info("AI response ${response.text}");
             val rawJson = response.text ?: throw Exception("AI returned an empty response")
 
             // This will throw JsonSyntaxException if the LLM breaks the rules

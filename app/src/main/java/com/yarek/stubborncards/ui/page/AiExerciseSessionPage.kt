@@ -264,7 +264,7 @@ fun AiActiveWorkoutComponent(
                             modifier = Modifier.padding(24.dp)
                         ) {
                             Text(
-                                text = currentAi.translation,
+                                text = currentAi.sentenceTranslation,
                                 style = Typography.titleLarge,
                                 color = MaterialTheme.colorScheme.secondary,
                                 textAlign = TextAlign.Center

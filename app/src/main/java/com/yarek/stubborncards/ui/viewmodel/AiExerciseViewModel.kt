@@ -76,8 +76,10 @@ class AiExerciseViewModel(
             val learnedBatch = repository.fetchExerciseBatch(ProgressLevel.LEARNED, 999, 0, contextWordsLimit / 2)
             val masteredBatch = repository.fetchExerciseBatch(ProgressLevel.MASTERED, 999, 0, contextWordsLimit / 2)
             
-            val targetWordsList = targetCards.map { it.flashCard.word }
-            val contextWordsList = (learnedBatch + masteredBatch).map { it.flashCard.word }
+            val targetWordsList = targetCards.map {
+                "${it.flashCard.word} - ${it.flashCard.translation}"}
+            val contextWordsList = (learnedBatch + masteredBatch).map {
+                "${it.flashCard.word} - ${it.flashCard.translation}" }
 
             // --- Call the AI ---
             val result = sentenceGenerator.generatePracticeCards(
