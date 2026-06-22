@@ -7,6 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
+import com.yarek.stubborncards.database.dao.DashboardDao;
 import com.yarek.stubborncards.database.dao.FlashCardDao;
 import com.yarek.stubborncards.database.dao.ImportExportDao;
 import com.yarek.stubborncards.database.dao.LearningProgressDao;
@@ -26,6 +27,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract FlashCardDao flashCardDao();
     public abstract LearningProgressDao learningProgressDao();
     public abstract ImportExportDao importExportDao();
+    public abstract DashboardDao dashboardDao();
 
     private static volatile AppDatabase INSTANCE;
 

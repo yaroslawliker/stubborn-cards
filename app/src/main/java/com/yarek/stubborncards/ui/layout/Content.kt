@@ -25,6 +25,7 @@ import com.yarek.stubborncards.ui.page.EditCardPage
 import com.yarek.stubborncards.ui.page.ExerciseSessionPage
 import com.yarek.stubborncards.ui.page.ExercisesHubPage
 import com.yarek.stubborncards.ui.page.ExportPage
+import com.yarek.stubborncards.ui.page.HomePage
 import com.yarek.stubborncards.ui.page.ImportExportMenuPage
 import com.yarek.stubborncards.ui.page.ImportPage
 import com.yarek.stubborncards.ui.theme.Typography
@@ -50,7 +51,7 @@ fun Content(navController: NavHostController, innerPadding: PaddingValues) {
         composable(route=Page.ImportPage.route) { ImportPage() }
         composable(route=Page.ExportPage.route) { ExportPage() }
 
-        composable(route=Page.Home.route) { DummyContent("Home") }
+        composable(route=Page.Home.route) { HomePage(navController) }
         composable(route=Page.Learn.route) { ExercisesHubPage(navController) }
         composable(route=Page.AddFlashcard.route) { AddFlashcardPage() }
         composable(route=Page.SettingsMenu.route) { SettingsMenuPage(navController) }
