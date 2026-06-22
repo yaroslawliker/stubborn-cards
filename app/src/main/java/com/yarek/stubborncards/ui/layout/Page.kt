@@ -2,9 +2,15 @@ package com.yarek.stubborncards.ui.layout
 
 sealed class Page(val route: String) {
     object Home : Page("home")
+
     object Cards : Page("cards")
-    object Learn : Page("learn")
     object AddFlashcard : Page("add_flashcard")
+
+    object ImportExportMenu: Page("import_export_menu")
+    object ImportPage: Page("import")
+    object ExportPage: Page("export")
+
+    object Learn : Page("learn")
 
     object SettingsMenu : Page("settings_manu")
     object SetupPromotionTable : Page("setup_promotion_table")

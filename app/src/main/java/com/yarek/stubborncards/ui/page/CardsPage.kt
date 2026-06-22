@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +52,8 @@ fun CardsPage(
                     navController.navigate(Page.CategoryWords.createRoute(level.name))
                 }
             )
+            SectionHorizontalDivider()
+            AdditionalOptions(navController)
         }
     }
 }
@@ -141,4 +141,33 @@ fun ProgressLevelButton(
             )
         }
     }
+}
+
+@Composable
+fun AdditionalOptions(navController: NavHostController) {
+    Text(
+        modifier = Modifier.fillMaxWidth(),
+        text = "Additional options",
+        textAlign = TextAlign.Center,
+        style = Typography.titleLarge
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+    ImportExportMenuButton(navController)
+}
+
+@Composable
+fun ImportExportMenuButton(navController: NavHostController) {
+    Button(
+        onClick = { navController.navigate(Page.ImportExportMenu.route) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Text(
+            "Import/export menu",
+            style = Typography.titleMedium
+        )
+    }
+
 }

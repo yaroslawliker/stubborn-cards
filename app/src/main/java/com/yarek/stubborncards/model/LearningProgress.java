@@ -46,6 +46,19 @@ public class LearningProgress {
 
     private Long flashCardId;
 
+    public LearningProgress() {}
+
+    public LearningProgress(
+            final float score,
+            final ProgressLevel level,
+            final boolean isOnReview,
+            final @Nullable LocalDateTime lastReviewed) {
+        this.score = score;
+        this.level = level;
+        this.isOnReview = isOnReview;
+        this.lastReviewed = lastReviewed;
+    }
+
     // Getters and Setters
 
     public Long getId() { return id; }

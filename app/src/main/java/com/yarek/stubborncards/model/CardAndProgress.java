@@ -9,6 +9,15 @@ public class CardAndProgress {
     @Embedded(prefix = "progress_")
     private LearningProgress progress;
 
+    public CardAndProgress() {}
+
+    public CardAndProgress(
+            final FlashCard flashCard,
+            final LearningProgress progress) {
+        this.flashCard = flashCard;
+        this.progress = progress;
+    }
+
     public FlashCard getFlashCard() {return flashCard;}
     public void setFlashCard(FlashCard flashCard) {this.flashCard = flashCard;}
 

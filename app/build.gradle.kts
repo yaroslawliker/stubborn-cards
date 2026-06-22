@@ -94,4 +94,7 @@ dependencies {
 
     // Android AI API client
     implementation(libs.generativeai)
+
+    // CSV
+    implementation(libs.kotlin.csv.jvm)
 }
