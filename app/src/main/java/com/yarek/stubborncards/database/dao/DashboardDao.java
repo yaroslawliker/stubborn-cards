@@ -34,8 +34,8 @@ public interface DashboardDao {
     @Query("SELECT COUNT(*) FROM learning_progress " +
             "WHERE level = :level " +
             "AND score >= :requiredScore " +
-            "AND lastReviewed IS NOT NULL " +
-            "AND lastReviewed + :testIntervalSeconds > :nowSeconds")
+            "AND (lastReviewed IS NULL " +
+            "OR lastReviewed + :testIntervalSeconds > :nowSeconds)")
     Integer countHiddenBeforeTest(
             ProgressLevel level,
             Long nowSeconds,
