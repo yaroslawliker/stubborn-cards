@@ -49,7 +49,7 @@ public interface LearningProgressDao {
     @Query("SELECT fc.* FROM flash_card fc " +
             "INNER JOIN learning_progress lp ON fc.id = lp.flashCardId " +
             "WHERE lp.level = :level AND (:searchQuery IS NULL OR fc.word LIKE :searchQuery) " +
-            "ORDER BY lp.lastReviewed ASC")
+            "ORDER BY lp.lastReviewed DESC")
     PagingSource<Integer, FlashCard> getCardsByLevelPaged(
             ProgressLevel level, @Nullable String searchQuery);
 
