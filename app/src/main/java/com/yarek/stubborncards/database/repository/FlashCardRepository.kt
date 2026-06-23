@@ -99,4 +99,8 @@ class FlashCardRepository(context: Context) {
             progressDao.updateScoreByCardId(cardId, newScore)
         }
     }
+
+    suspend fun promoteNewToBatch(amount: Int) {
+        progressDao.promoteNewToBatch(amount)
+    }
 }

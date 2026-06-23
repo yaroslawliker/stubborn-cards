@@ -97,4 +97,12 @@ public interface LearningProgressDao {
     @Query("SELECT * FROM learning_progress")
     List<LearningProgress> getAll();
 
+    @Query("UPDATE learning_progress " +
+        "SET level = 'NEW_BATCH' " +
+        "WHERE flashCardId IN ( " +
+            "SELECT flashCardId FROM learning_progress " +
+            "WHERE level = 'NEW' " +
+            "ORDER BY id ASC " +
+            "LIMIT :amount)")
+    void promoteNewToBatch(Integer amount);
 }

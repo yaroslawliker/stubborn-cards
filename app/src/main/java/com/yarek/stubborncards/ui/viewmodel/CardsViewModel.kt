@@ -5,10 +5,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.yarek.stubborncards.database.repository.FlashCardRepository
 import com.yarek.stubborncards.model.ProgressLevel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class CardsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -26,4 +28,10 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = ProgressLevel.entries.associateWith { 0 }
         )
+
+    fun prepareNewBatch(amount: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.promoteNewToBatch(amount)
+        }
+    }
 }
