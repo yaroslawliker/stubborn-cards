@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.yarek.stubborncards.model.ProgressLevel
@@ -39,20 +40,7 @@ fun ExercisesHubPage(navController: NavHostController) {
             buttonIcon = Icons.Default.AutoAwesome,
             onClick = { navController.navigate(Page.AiExerciseSession.route) }
         ),
-        ExerciseOption(
-            description = "Focus on new words with a bit of old ones",
-            buttonText = "Fresh mind",
-            onClick = {
-                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "fresh_mind"))
-            }
-        ),
-        ExerciseOption(
-            description = "Learn words from Clean up progress level, with a bit of words from higher levels.",
-            buttonText = "Daily Recap",
-            onClick = {
-                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "recap"))
-            }
-        ),
+
         ExerciseOption(
             description = "Choose a specific single category level you want to focus on exclusively.",
             buttonText = "${selectedLevel.readable} Focus",
@@ -62,6 +50,28 @@ fun ExercisesHubPage(navController: NavHostController) {
             extraContent = {
                 Spacer(modifier = Modifier.height(8.dp))
                 LevelSelectorDropdown(currentLevel = selectedLevel, onLevelSelected = { selectedLevel = it })
+            }
+        ),
+
+        ExerciseOption(
+            description = "Focus on new words with a bit of review",
+            buttonText = "Fresh mind",
+            onClick = {
+                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "fresh_mind"))
+            }
+        ),
+        ExerciseOption(
+            description = "'Clean up' words with a bit of others",
+            buttonText = "Daily Recap",
+            onClick = {
+                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "recap"))
+            }
+        ),
+        ExerciseOption(
+            description = "Review equal amount of words from 'Clean up', 'Known' and 'Learnt'",
+            buttonText = "Balanced",
+            onClick = {
+                navController.navigate(Page.ExerciseSession.createRoute(exerciseId = "balanced"))
             }
         )
     )
@@ -82,12 +92,21 @@ fun ExercisesHubPage(navController: NavHostController) {
                         buttonIcon = option.buttonIcon,
                         extraContent = option.extraContent
                     )
-                    if (setOf(0, 2).contains(index)) {
+                    if (setOf(0, 1).contains(index)) {
                         SectionHorizontalDivider()
                     } else {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
                     }
 
+                    if (index == 1) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Predefined exercises",
+                            textAlign = TextAlign.Center,
+                            style = Typography.titleLarge
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

@@ -36,8 +36,12 @@ class ExerciseViewModel(
     private val exerciseConfig = if (levelParam != null) {
         ExerciseConfigRegistry.buildSingleCategoryConfig(ProgressLevel.valueOf(levelParam))
     } else {
-        if (exerciseId == "recap") ExerciseConfigRegistry.RECAP 
-        else ExerciseConfigRegistry.FRESH_MIND
+        when (exerciseId) {
+            "recap" -> ExerciseConfigRegistry.RECAP
+            "balanced" -> ExerciseConfigRegistry.BALANCED
+            else -> ExerciseConfigRegistry.FRESH_MIND
+
+        }
     }
 
     private val _uiState = MutableStateFlow<ExerciseUiState>(ExerciseUiState.Loading)

@@ -11,6 +11,7 @@ public final class ExerciseConfigRegistry {
 
     public static final ExerciseConfig FRESH_MIND;
     public static final ExerciseConfig RECAP;
+    public static final ExerciseConfig BALANCED;
 
     static {
         FRESH_MIND = new ExerciseConfig(
@@ -31,6 +32,17 @@ public final class ExerciseConfigRegistry {
                         ProgressLevel.CLEAN_UP, 75,
                         ProgressLevel.KNOWN, 20,
                         ProgressLevel.LEARNED, 5),
+                true
+        );
+
+        BALANCED = new ExerciseConfig(
+                "balanced",
+                "Balanced",
+                Map.of(
+                    ProgressLevel.CLEAN_UP, 32,
+                    ProgressLevel.KNOWN, 32,
+                    ProgressLevel.LEARNED, 32,
+                    ProgressLevel.MASTERED, 4),
                 true
         );
     }
